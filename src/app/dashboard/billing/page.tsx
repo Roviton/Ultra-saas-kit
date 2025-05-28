@@ -26,7 +26,7 @@ const pricingPlans = [
       '5GB storage',
       'API access',
     ],
-    priceId: 'price_1QTPalGI6vk81n8V8PtyW1ow'
+    priceId: 'price_1RTg7kFRRB3Q64TIuN72nVNI'
   },
   {
     title: 'Pro',
@@ -41,7 +41,7 @@ const pricingPlans = [
       'Custom integrations',
     ],
     popular: true,
-    priceId: 'price_1QTPbgGI6vk81n8VgYFOi983'
+    priceId: 'price_1RTg81FRRB3Q64TIs07aFfLI'
   },
   {
     title: 'Enterprise',
@@ -55,7 +55,7 @@ const pricingPlans = [
       'API access',
       'Custom development',
     ],
-    priceId: 'price_1QTPcUGI6vk81n8V9567pzL9'
+    priceId: 'price_1RTg8IFRRB3Q64TIMxjPmiJn'
   },
 ]
 

@@ -47,7 +47,7 @@ const pricingPlans = [
       'API access',
     ],
     buttonText: 'Get Started',
-    priceId: 'price_1QTPalGI6vk81n8V8PtyW1ow'
+    priceId: 'price_1RTg7kFRRB3Q64TIuN72nVNI'
   },
   {
     title: 'Pro',
@@ -63,7 +63,7 @@ const pricingPlans = [
     ],
     buttonText: 'Start Free Trial',
     popular: true,
-    priceId: 'price_1QTPbgGI6vk81n8VgYFOi983'
+    priceId: 'price_1RTg81FRRB3Q64TIs07aFfLI'
   },
   {
     title: 'Enterprise',
@@ -78,7 +78,7 @@ const pricingPlans = [
       'Custom development',
     ],
     buttonText: 'Contact Sales',
-    priceId: 'price_1QTPcUGI6vk81n8V9567pzL9'
+    priceId: 'price_1RTg8IFRRB3Q64TIMxjPmiJn'
   },
 ]
 
