@@ -1,95 +1,26 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/lib/supabase/auth-context'
+import { SignOutButton } from '@/components/auth/SignOutButton'
 import { Database } from '@/types/supabase'
 
-interface User {
+interface OrganizationInfo {
   id: string
-  email: string
-  credits: number
+  name: string
+  subscription_tier?: string
 }
 
 export default function Header() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { user, profile, isLoading } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [organizationInfo, setOrganizationInfo] = useState<OrganizationInfo | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const supabase = createClientComponentClient<Database>()
-  const router = useRouter()
+  // The auth data is already being loaded by the AuthProvider in the auth-context
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (!session) {
-          setUser(null)
-          setIsLoading(false)
-          return
-        }
-
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id, email, credits')
-          .eq('id', session.user.id)
-          .single()
-
-        if (userData) {
-          setUser({
-            id: userData.id,
-            email: session.user.email || userData.email,
-            credits: userData.credits
-          })
-        }
-      } catch (error) {
-        console.error('Error:', error)
-        setError('Error loading user data')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id, email, credits')
-          .eq('id', session.user.id)
-          .single()
-
-        if (userData) {
-          setUser({
-            id: userData.id,
-            email: session.user.email || userData.email,
-            credits: userData.credits
-          })
-        }
-      } else {
-        setUser(null)
-        router.replace('/auth')
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase, router])
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut()
-      router.replace('/auth')
-    } catch (error) {
-      console.error('Error signing out:', error)
-      setError('Error signing out')
-    }
-  }
+  // SignOut functionality is now handled by the SignOutButton component
 
   if (isLoading) {
     return (
@@ -122,15 +53,17 @@ export default function Header() {
             )}
             
             <div className="flex items-center space-x-4">
-              <div className="text-white/60">
-                Credits: {user?.credits || 0}
-              </div>
+              {profile?.role && (
+                <div className="text-white/60 bg-white/5 px-2 py-1 rounded text-xs">
+                  {profile.role === 'admin' ? 'Administrator' : 'Dispatcher'}
+                </div>
+              )}
               <div className="relative">
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center space-x-2 text-white hover:text-white/80"
                 >
-                  <span>{user?.email}</span>
+                  <span className="max-w-[150px] truncate">{user?.email}</span>
                   <svg
                     className={`w-5 h-5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
                     fill="none"
@@ -163,15 +96,13 @@ export default function Header() {
                       >
                         Settings
                       </Link>
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false)
-                          handleSignOut()
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Sign out
-                      </button>
+                      <div onClick={() => setIsMenuOpen(false)}>
+                        <SignOutButton
+                          variant="ghost"
+                          showIcon={true}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 justify-start font-normal"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
