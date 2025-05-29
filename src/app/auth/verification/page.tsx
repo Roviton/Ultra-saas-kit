@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, AlertCircle, AlertTriangle, MailCheck, Loader2 } from 'lucide-react'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { CheckCircle, AlertCircle, MailCheck, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function VerificationPage() {
   const [isVerified, setIsVerified] = useState<boolean | null>(null)
@@ -15,23 +15,13 @@ export default function VerificationPage() {
   const [error, setError] = useState<string | null>(null)
   const [resendSuccess, setResendSuccess] = useState(false)
   const router = useRouter()
-  const { user } = useAuth()
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   
   // Create a Supabase client for verification operations
-  const supabase = typeof window !== 'undefined' ? 
-    new (require('@supabase/supabase-js').createClient)(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!, 
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { persistSession: true } }
-    ) : null
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     const checkSession = async () => {
-      if (!supabase) {
-        setIsLoading(false)
-        return
-      }
-      
       try {
         // Get current session and user
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -48,6 +38,10 @@ export default function VerificationPage() {
             throw userError
           }
           
+          if (user?.email) {
+            setUserEmail(user.email)
+          }
+          
           if (user?.email_confirmed_at) {
             setIsVerified(true)
             // Wait 3 seconds before redirecting to dashboard
@@ -59,11 +53,7 @@ export default function VerificationPage() {
           }
         } else {
           setIsVerified(false)
-          // If no session but the auth context has a user, there may be a sync issue
-          if (user) {
-            // Redirect to dashboard and let the auth context handle it
-            router.push('/dashboard')
-          }
+          router.push('/auth')
         }
       } catch (error: any) {
         console.error('Verification error:', error)
@@ -74,7 +64,7 @@ export default function VerificationPage() {
     }
     
     checkSession()
-  }, [router, supabase, user])
+  }, [router, supabase])
 
   if (isLoading) {
     return (
@@ -219,20 +209,23 @@ export default function VerificationPage() {
           <div className="pt-2 space-y-3">
             <Button 
               onClick={async () => {
-                if (!supabase) return;
                 setIsLoading(true)
                 try {
-                  // Get current user's email
-                  const { data } = await supabase.auth.getUser()
-                  const userEmail = data?.user?.email
+                  // Get current user's email if not already set
+                  let emailToUse = userEmail
                   
-                  if (!userEmail) {
+                  if (!emailToUse) {
+                    const { data } = await supabase.auth.getUser()
+                    emailToUse = data?.user?.email || null
+                  }
+                  
+                  if (!emailToUse) {
                     throw new Error('No user email found')
                   }
                   
                   const { error } = await supabase.auth.resend({
                     type: 'signup',
-                    email: userEmail,
+                    email: emailToUse,
                     options: {
                       emailRedirectTo: `${window.location.origin}/auth/callback`,
                     }
