@@ -19,8 +19,16 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Role-based access control for Ultra21.com freight dispatch platform
+  // Email verification enforcement for Ultra21.com freight dispatch platform
   if (session && req.nextUrl.pathname.startsWith('/dashboard')) {
+    // Check if email is verified
+    const isEmailVerified = session.user?.email_confirmed_at ? true : false
+    
+    // If email is not verified and not already on the verification page, redirect to verification
+    if (!isEmailVerified && !req.nextUrl.pathname.includes('/auth/verification')) {
+      return NextResponse.redirect(new URL('/auth/verification', req.url))
+    }
+    
     try {
       // Get user's profile to check role
       const { data: profile } = await supabase

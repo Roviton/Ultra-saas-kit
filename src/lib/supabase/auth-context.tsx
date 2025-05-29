@@ -183,6 +183,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth()
   }, [router, supabase.auth])
 
+  const isEmailVerified = user?.email_confirmed_at ? true : false
+
   const value = {
     user,
     profile,
@@ -190,10 +192,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     isAdmin,
     isDispatcher,
-    signIn,
+    isEmailVerified,
     signUp,
+    signIn,
     signOut,
     refreshProfile,
+    // Helper method to enforce email verification
+    requireVerification: (routerToUse: any = router, redirectPath: string = '/auth/verification') => {
+      if (user && !isEmailVerified) {
+        routerToUse.push(redirectPath)
+        return false
+      }
+      return true
+    }
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
