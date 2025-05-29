@@ -2,17 +2,18 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import AuthForm from './AuthForm'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useAuth } from '@/lib/supabase/auth-context'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 function AuthContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [view, setView] = useState('sign-in')
   const [mounted, setMounted] = useState(false)
-  const supabase = createClientComponentClient()
+  const { user } = useAuth()
 
   useEffect(() => {
     setMounted(true)
@@ -21,15 +22,11 @@ function AuthContent() {
       setView(viewParam)
     }
 
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        router.push('/dashboard')
-      }
+    // If user is already authenticated, redirect to dashboard
+    if (user) {
+      router.push('/dashboard')
     }
-
-    checkUser()
-  }, [router, searchParams, supabase.auth])
+  }, [router, searchParams, user])
 
   if (!mounted) {
     return (
@@ -47,8 +44,9 @@ function AuthContent() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
-              <Image src="/logo.svg" alt="Logo" width={32} height={32} priority />
-              <span className="text-white font-bold text-xl">SaaS Kit Pro</span>
+              <Image src="/logo.svg" alt="Ultra21" width={32} height={32} priority />
+              <span className="text-white font-bold text-xl">Ultra<span className="text-yellow-400">21</span></span>
+              <span className="text-sm text-white/60 hidden sm:block">Freight Dispatch Platform</span>
             </Link>
 
             {/* Navigation */}

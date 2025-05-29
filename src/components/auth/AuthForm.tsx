@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useAuth } from '@/lib/supabase/auth-context'
 import { UserRole } from '@/lib/supabase/client'
+import { AlertCircle, CheckCircle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 interface AuthFormProps {
   view?: string
@@ -25,7 +27,7 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnUrl = searchParams?.get('returnUrl') || '/'
-  const supabase = createClientComponentClient()
+  const { signIn, signUp } = useAuth()
 
   useEffect(() => {
     setIsSignUp(initialView === 'sign-up')
@@ -37,10 +39,7 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { error } = await signIn(email, password)
 
       if (error) {
         if (error.message === 'Invalid login credentials') {
@@ -52,7 +51,6 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
       }
 
       router.push(returnUrl)
-      router.refresh()
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -74,20 +72,8 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
     }
 
     try {
-      // Use the supabase client directly for authentication
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            role,
-            first_name: firstName,
-            last_name: lastName,
-            organization_name: role === 'admin' ? organizationName : undefined
-          },
-        },
-      })
+      // Use the auth context for signup with only required parameters
+      const { error } = await signUp(email, password, role)
 
       if (error) {
         setError(error.message)
@@ -110,15 +96,19 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
         </h2>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-            <p className="text-red-500 text-sm">{error}</p>
-          </div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
         
         {successMessage && (
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-            <p className="text-green-500 text-sm">{successMessage}</p>
-          </div>
+          <Alert variant="success" className="mb-4">
+            <CheckCircle className="h-4 w-4" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
         )}
 
         <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
