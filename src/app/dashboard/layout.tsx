@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useAuth } from '@/lib/supabase/auth-context'
 import Link from 'next/link'
 import {
   HomeIcon,
@@ -36,6 +37,7 @@ export default function DashboardLayout({
 }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClientComponentClient()
@@ -48,6 +50,18 @@ export default function DashboardLayout({
           router.replace('/auth')
           return
         }
+        
+        // Get user role from profiles table
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (profile) {
+          setUserRole(profile.role)
+        }
+        
         setIsAuthenticated(true)
       } catch (error) {
         console.error('Error checking session:', error)
@@ -113,6 +127,25 @@ export default function DashboardLayout({
                 </Link>
               )
             })}
+            
+            {/* Admin-only navigation item */}
+            {userRole === 'admin' && (
+              <Link
+                href="/dashboard/admin"
+                className={`
+                  flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors mt-4
+                  ${pathname === '/dashboard/admin' 
+                    ? 'bg-red-900/30 text-red-400' 
+                    : 'text-red-400/70 hover:bg-red-900/20 hover:text-red-400'
+                  }
+                `}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Admin Dashboard
+              </Link>
+            )}
           </nav>
         </div>
 

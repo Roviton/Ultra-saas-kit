@@ -1,0 +1,624 @@
+# Ultra21.com Product Requirements Document
+
+## 1. Introduction
+
+This Product Requirements Document (PRD) outlines the development of Ultra21.com, a comprehensive web-based SaaS platform designed to revolutionize freight dispatch operations for small to medium-sized freight companies. This document serves as the foundational blueprint for product development, defining features, technical requirements, user experience, and development roadmap.
+
+The purpose of this PRD is to establish clear expectations, requirements, and specifications for all stakeholders involved in the development process, ensuring alignment between business objectives and technical implementation.
+
+## 2. Product overview
+
+Ultra21.com addresses the critical operational challenges faced by freight dispatch companies through a centralized, intelligent platform that streamlines load management, driver coordination, and customer relationship management. The platform eliminates the fragmented workflow problems that plague the industry by providing a single, intuitive interface for all dispatch operations.
+
+### 2.1 Problem statement
+
+Small to medium-sized freight companies currently struggle with:
+- Fragmented communication channels between dispatchers, drivers, and customers
+- Manual data entry consuming 30-40% of dispatcher time
+- Lack of real-time visibility into operational performance
+- Inefficient load assignment and tracking processes
+- Poor customer relationship management capabilities
+- Difficulty scaling operations due to operational inefficiencies
+
+### 2.2 Solution overview
+
+Ultra21.com provides a comprehensive solution through:
+- Centralized load management with automated document processing
+- AI-powered communication tools for professional broker correspondence
+- Real-time driver communication via Telegram integration
+- Multi-tenant architecture supporting multiple freight companies
+- Advanced analytics and reporting capabilities
+- Role-based access control for different user types
+
+## 3. Goals and objectives
+
+### 3.1 Primary objectives
+
+**Operational Efficiency**
+- Reduce manual data entry time by 60% through OCR automation
+- Decrease load processing time from assignment to dispatch by 40%
+- Improve driver communication response times by 70%
+
+**Business Growth**
+- Enable freight companies to scale operations without proportional staff increases
+- Improve customer satisfaction through better communication and tracking
+- Provide data-driven insights for strategic decision making
+
+**User Experience**
+- Deliver intuitive interfaces tailored to specific user roles
+- Ensure 99.9% platform uptime and reliability
+- Achieve mobile-responsive design across all devices
+
+### 3.2 Success metrics
+
+- User adoption rate: 80% of dispatchers actively using the platform within 30 days
+- Customer retention rate: 95% annual retention for paying customers
+- Platform performance: Sub-2 second page load times
+- Document processing accuracy: 95% OCR extraction accuracy
+- Communication efficiency: 50% reduction in broker communication time
+
+## 4. Target audience
+
+### 4.1 Primary users
+
+**Freight Company Administrators**
+- Company owners and managers
+- Responsible for overall business performance and team management
+- Need comprehensive dashboards and billing controls
+- Typically 35-55 years old with moderate technical proficiency
+
+**Dispatchers**
+- Core operational users managing daily freight operations
+- Handle load creation, driver assignment, and customer communication
+- Need streamlined workflows and automation tools
+- Typically 25-45 years old with good technical proficiency
+
+### 4.2 Secondary users
+
+**Drivers**
+- External users receiving load assignments and providing updates
+- Need simple, mobile-friendly communication tools
+- Prefer familiar platforms like Telegram for communication
+- Age range varies widely with moderate to low technical proficiency
+
+**Brokers and Customers**
+- Receive automated communications and updates
+- Benefit from improved service quality and communication
+- No direct platform access but key stakeholders in user experience
+
+### 4.3 Market size
+
+- Target market: 15,000+ small to medium freight companies in North America
+- Addressable market: Companies with 5-50 trucks and 2-10 dispatchers
+- Revenue opportunity: $50-500 monthly subscription per company
+
+## 5. Features and requirements
+
+### 5.1 Core features
+
+#### 5.1.1 Multi-role authentication system
+**Functionality**: Secure, role-based access with different dashboard experiences for administrators and dispatchers
+**Business Value**: Ensures data security and provides tailored user experiences
+**Implementation**: Supabase Auth with custom role assignments and protected routes
+
+#### 5.1.2 Load management system
+**Functionality**: Complete load lifecycle management from booking through delivery
+**Business Value**: Centralizes core business operations and improves tracking
+**Key Components**:
+- Load creation and editing interface
+- Status tracking with real-time updates
+- Advanced filtering and search capabilities
+- Load assignment workflow
+- Timeline and milestone tracking
+
+#### 5.1.3 Driver management
+**Functionality**: Comprehensive driver profile management and performance tracking
+**Business Value**: Optimizes driver utilization and provides performance insights
+**Key Components**:
+- Driver profile creation and maintenance
+- Availability status tracking
+- Performance metrics dashboard
+- Assignment history and analytics
+
+#### 5.1.4 Customer management
+**Functionality**: Centralized customer relationship management
+**Business Value**: Improves customer relationships and provides business intelligence
+**Key Components**:
+- Customer profile management
+- Performance analytics and metrics
+- Communication history tracking
+- Customer value assessment
+
+#### 5.1.5 Document processing with OCR
+**Functionality**: Automated data extraction from freight documents
+**Business Value**: Eliminates manual data entry and reduces errors
+**Key Components**:
+- PDF upload and processing
+- OCR field extraction and validation
+- Auto-population of load creation forms
+- Document storage and organization
+
+#### 5.1.6 AI-powered communication tools
+**Functionality**: Automated generation of professional email drafts
+**Business Value**: Streamlines broker communication and ensures consistency
+**Key Components**:
+- Context-aware email generation
+- Template customization
+- Review and edit interface
+- Send and tracking capabilities
+
+#### 5.1.7 Telegram bot integration
+**Functionality**: Real-time communication channel with drivers
+**Business Value**: Provides convenient, mobile-friendly driver communication
+**Key Components**:
+- Bot setup and configuration
+- Message sending and receiving
+- Status update requests
+- Notification system
+
+#### 5.1.8 Reporting and analytics
+**Functionality**: Performance dashboards and custom reporting
+**Business Value**: Enables data-driven decision making
+**Key Components**:
+- KPI tracking dashboards
+- Custom report generation
+- Data visualization tools
+- Export capabilities
+
+#### 5.1.9 Multi-tenant architecture
+**Functionality**: Isolated data environments for each freight company
+**Business Value**: Ensures data privacy and enables platform scaling
+**Key Components**:
+- Organization-level data partitioning
+- Row-level security policies
+- Subscription tier management
+- Billing integration
+
+### 5.2 Feature prioritization
+
+**Phase 1 (MVP) - Must Have**
+- Authentication and role management
+- Basic load management (CRUD operations)
+- Driver and customer profiles
+- Simple dashboard views
+- Settings and profile management
+
+**Phase 2 - Should Have**
+- Document upload and OCR processing
+- Load assignment workflow
+- Enhanced filtering and search
+- Basic Telegram integration
+- Email generation tools
+
+**Phase 3 - Could Have**
+- Advanced analytics and reporting
+- Performance metrics dashboards
+- Custom report generation
+- Enhanced mobile responsiveness
+- API documentation
+
+**Phase 4 - Won't Have (Initial Release)**
+- Mobile application
+- Advanced route optimization
+- Third-party integrations beyond core features
+- Automated invoicing
+
+## 6. User stories and acceptance criteria
+
+### 6.1 Authentication and access control
+
+**ST-101: User registration and login**
+As a freight company administrator, I want to create an account and log in securely so that I can access the platform with appropriate permissions.
+
+*Acceptance Criteria:*
+- User can register with email and password
+- Email verification is required before account activation
+- User can log in with valid credentials
+- Failed login attempts are tracked and limited
+- User is redirected to appropriate dashboard based on role
+
+**ST-102: Role-based access control**
+As a system administrator, I want to ensure users only access features appropriate to their role so that data security is maintained.
+
+*Acceptance Criteria:*
+- Admin users can access all platform features
+- Dispatcher users can only access operational features
+- Unauthorized access attempts are blocked and logged
+- Role changes require admin approval
+- Session management prevents unauthorized access
+
+### 6.2 Load management
+
+**ST-103: Create new load**
+As a dispatcher, I want to create new loads either manually or through document upload so that I can efficiently manage freight operations.
+
+*Acceptance Criteria:*
+- Manual load creation form with all required fields
+- Document upload triggers OCR processing
+- Form validation prevents incomplete submissions
+- Load reference numbers are automatically generated
+- Created loads appear in the loads table immediately
+
+**ST-104: View and search loads**
+As a dispatcher, I want to view all loads in a searchable table so that I can quickly find and manage specific shipments.
+
+*Acceptance Criteria:*
+- All loads display in a paginated table
+- Search functionality works across all load fields
+- Filters available for status, date range, customer, and driver
+- Sorting capabilities for all columns
+- Load details accessible through row expansion or modal
+
+**ST-105: Assign driver to load**
+As a dispatcher, I want to assign available drivers to loads so that shipments can be dispatched efficiently.
+
+*Acceptance Criteria:*
+- Driver selection dropdown shows only available drivers
+- Assignment triggers automatic notification to driver
+- Load status updates to "Assigned" upon driver assignment
+- Assignment history is tracked and viewable
+- Reassignment capability with audit trail
+
+**ST-106: Update load status**
+As a dispatcher, I want to update load status based on driver feedback so that customers receive accurate tracking information.
+
+*Acceptance Criteria:*
+- Status updates can be made manually or automatically
+- Status changes trigger customer notifications
+- Timeline tracking shows all status changes with timestamps
+- Comments can be added to status updates
+- Status history is permanently retained
+
+### 6.3 Driver management
+
+**ST-107: Create driver profile**
+As an administrator, I want to create and maintain driver profiles so that I can effectively manage my driver network.
+
+*Acceptance Criteria:*
+- Driver profile form captures all required information
+- Photo upload capability for driver identification
+- Contact information validation
+- License and certification tracking
+- Profile can be marked as active or inactive
+
+**ST-108: View driver availability**
+As a dispatcher, I want to see real-time driver availability so that I can make informed assignment decisions.
+
+*Acceptance Criteria:*
+- Driver status clearly indicates availability
+- Location information displays when available
+- Current assignment information is visible
+- Availability can be filtered and sorted
+- Status updates reflect in real-time
+
+### 6.4 Document processing
+
+**ST-109: Upload and process documents**
+As a dispatcher, I want to upload rate confirmation documents so that load information can be automatically extracted.
+
+*Acceptance Criteria:*
+- Drag-and-drop file upload interface
+- Support for PDF and image formats
+- OCR processing begins immediately after upload
+- Processing status indicator shows progress
+- Extracted data populates load creation form
+
+**ST-110: Validate extracted data**
+As a dispatcher, I want to review and validate OCR-extracted data so that load information is accurate.
+
+*Acceptance Criteria:*
+- Extracted fields are highlighted for review
+- Confidence scores indicate extraction reliability
+- Manual override capability for all fields
+- Validation rules prevent obviously incorrect data
+- Save and continue workflow after validation
+
+### 6.5 Communication tools
+
+**ST-111: Send driver notifications**
+As a dispatcher, I want to send notifications to drivers via Telegram so that they receive timely load assignments and updates.
+
+*Acceptance Criteria:*
+- Driver notification includes all relevant load details
+- Delivery confirmation tracks message receipt
+- Drivers can respond with acceptance or questions
+- Message history is maintained in the platform
+- Bulk messaging capability for multiple drivers
+
+**ST-112: Generate broker emails**
+As a dispatcher, I want to generate professional email drafts for broker communication so that I can maintain consistent, quality correspondence.
+
+*Acceptance Criteria:*
+- AI generates contextually appropriate email content
+- Email templates can be customized per customer
+- Draft can be edited before sending
+- Email history is tracked and searchable
+- Send directly from platform or copy to external client
+
+### 6.6 Database modeling
+
+**ST-113: Multi-tenant data isolation**
+As a system architect, I want to ensure complete data isolation between organizations so that customer data remains secure and private.
+
+*Acceptance Criteria:*
+- Row-level security policies prevent cross-organization access
+- All queries automatically filter by organization
+- Database triggers maintain data integrity
+- Audit logging tracks all data access
+- Regular security testing validates isolation
+
+**ST-114: Database performance optimization**
+As a system architect, I want to optimize database performance so that the platform remains responsive as data volume grows.
+
+*Acceptance Criteria:*
+- Appropriate indexes on frequently queried columns
+- Query execution plans are optimized
+- Database connection pooling implemented
+- Automated performance monitoring
+- Scaling strategies documented and tested
+
+### 6.7 Reporting and analytics
+
+**ST-115: View performance dashboard**
+As an administrator, I want to view key performance indicators so that I can make data-driven business decisions.
+
+*Acceptance Criteria:*
+- Dashboard loads within 3 seconds
+- Key metrics display with appropriate visualizations
+- Date range filtering affects all dashboard elements
+- Drill-down capability for detailed analysis
+- Dashboard updates automatically with new data
+
+**ST-116: Generate custom reports**
+As an administrator, I want to generate custom reports so that I can analyze specific aspects of business performance.
+
+*Acceptance Criteria:*
+- Report builder interface with drag-and-drop functionality
+- Multiple chart types and visualization options
+- Export capability to PDF and Excel formats
+- Scheduled report generation and email delivery
+- Report templates can be saved and reused
+
+### 6.8 Settings and configuration
+
+**ST-117: Manage organization settings**
+As an administrator, I want to configure organization-specific settings so that the platform works optimally for my business.
+
+*Acceptance Criteria:*
+- Company profile information can be updated
+- User management interface for adding/removing team members
+- Subscription and billing information is accessible
+- Integration settings for Telegram and email
+- Data backup and export options
+
+**ST-118: User profile management**
+As any user, I want to manage my personal profile settings so that my account information remains current and secure.
+
+*Acceptance Criteria:*
+- Profile information can be updated
+- Password change functionality with validation
+- Two-factor authentication setup option
+- Notification preferences configuration
+- Session management and logout capability
+
+## 7. Technical requirements / Stack
+
+### 7.1 Frontend architecture
+
+**Framework**: Next.js 15 with App Router
+- Server-side rendering for improved performance
+- API routes for backend functionality
+- TypeScript for type safety and better developer experience
+- Hot reloading for efficient development
+
+**UI Component Library**: 
+- Tailwind CSS for utility-first styling
+- shadcn/ui for consistent, accessible components
+- Tanstack Table for advanced data table functionality
+- Recharts for data visualization and analytics
+
+**State Management**:
+- React Context API for global state
+- React Query (TanStack Query) for server state management
+- Local storage for user preferences
+
+### 7.2 Backend architecture
+
+**Database**: PostgreSQL via Supabase
+- Multi-tenant architecture with row-level security
+- Real-time subscriptions for live updates
+- Built-in authentication and user management
+- Automatic API generation
+
+**Authentication**: Supabase Auth
+- JWT-based authentication
+- Role-based access control
+- Social login options
+- Multi-factor authentication support
+
+**File Storage**: Supabase Storage
+- Secure file upload and management
+- Image optimization and resizing
+- CDN delivery for improved performance
+
+**Serverless Functions**: Supabase Edge Functions
+- Custom business logic execution
+- Third-party API integrations
+- Background job processing
+
+### 7.3 AI and machine learning
+
+**Document Processing**: LlamaIndex
+- Advanced OCR capabilities
+- Document parsing and data extraction
+- Vector search for document similarity
+- Custom model training for freight documents
+
+**Text Generation**: Vercel AI SDK with OpenAI
+- Professional email draft generation
+- Context-aware content creation
+- Streaming responses for better UX
+- Custom prompt engineering
+
+### 7.4 External integrations
+
+**Messaging**: Telegram Bot API
+- Real-time driver communication
+- Webhook integration for message handling
+- Rich message formatting and inline keyboards
+- Group chat management
+
+**Email**: Resend API
+- Transactional email delivery
+- Template management
+- Delivery tracking and analytics
+- High deliverability rates
+
+**Payments**: Stripe API
+- Subscription billing management
+- Payment processing and invoicing
+- Usage-based billing models
+- Customer portal integration
+
+### 7.5 Infrastructure requirements
+
+**Hosting**: Vercel Platform
+- Automatic deployments from Git
+- Edge network for global performance
+- Built-in analytics and monitoring
+- Serverless function execution
+
+**Performance Requirements**:
+- Page load times under 2 seconds
+- 99.9% uptime availability
+- Support for 1000+ concurrent users
+- Mobile-responsive design
+
+**Security Requirements**:
+- SSL encryption for all communications
+- GDPR and CCPA compliance
+- Regular security audits and penetration testing
+- Data backup and disaster recovery
+
+**Monitoring and Analytics**:
+- Vercel Analytics for performance monitoring
+- Custom logging for business intelligence
+- Error tracking and alerting
+- User behavior analytics
+
+## 8. Design and user interface
+
+### 8.1 Design principles
+
+**Consistency**: Maintain uniform visual language across all platform components using a comprehensive design system built on shadcn/ui components.
+
+**Clarity**: Prioritize information hierarchy and progressive disclosure to prevent cognitive overload while ensuring all necessary information is accessible.
+
+**Efficiency**: Design workflows that minimize clicks and reduce time-to-completion for common tasks.
+
+**Accessibility**: Ensure WCAG 2.1 AA compliance with proper contrast ratios, keyboard navigation, and screen reader support.
+
+### 8.2 Visual design system
+
+**Typography**:
+- Primary font: Inter for optimal readability
+- Heading hierarchy with consistent sizing and weight
+- Body text optimized for extended reading
+
+**Color Palette**:
+- Primary brand colors for key actions and branding
+- Semantic colors for status indicators (success, warning, error)
+- Neutral grays for backgrounds and secondary elements
+- High contrast ratios for accessibility compliance
+
+**Spacing and Layout**:
+- 8px grid system for consistent spacing
+- Responsive breakpoints for mobile, tablet, and desktop
+- Card-based layouts for content organization
+- Consistent padding and margin patterns
+
+### 8.3 Component library
+
+**Navigation Components**:
+- Top navigation bar with role-based menu items
+- Sidebar navigation for main sections
+- Breadcrumb navigation for deep page hierarchies
+- Mobile-responsive hamburger menu
+
+**Data Display Components**:
+- Advanced data tables with sorting, filtering, and pagination
+- Dashboard cards for key metrics
+- Charts and graphs for analytics
+- Timeline components for load tracking
+
+**Form Components**:
+- Consistent form styling and validation
+- File upload with drag-and-drop functionality
+- Multi-step forms for complex workflows
+- Auto-save functionality for long forms
+
+**Feedback Components**:
+- Toast notifications for system feedback
+- Loading states for all async operations
+- Progress indicators for multi-step processes
+- Error states with actionable recovery options
+
+### 8.4 User interface specifications
+
+**Dashboard Layouts**:
+- Admin dashboard with company-wide KPIs and team management
+- Dispatcher dashboard focused on daily operational tasks
+- Customizable widget arrangement for personalized experiences
+- Quick action buttons for common tasks
+
+**Data Table Design**:
+- Freeze headers for large datasets
+- Row selection for bulk operations
+- Expandable rows for detailed information
+- Export functionality for data analysis
+
+**Modal and Dialog Design**:
+- Consistent modal sizing and positioning
+- Clear primary and secondary actions
+- Escape key and overlay click for dismissal
+- Focus management for accessibility
+
+**Mobile Responsiveness**:
+- Touch-friendly interface elements
+- Optimized layouts for small screens
+- Simplified navigation for mobile users
+- Progressive web app capabilities
+
+### 8.5 User experience flows
+
+**Load Creation Flow**:
+1. Access load creation from dashboard or navigation
+2. Choose between manual entry or document upload
+3. If document upload: process OCR and validate extracted data
+4. Complete required fields with validation feedback
+5. Save and assign driver or save as draft
+6. Confirmation screen with next action options
+
+**Driver Assignment Flow**:
+1. Select load from loads table
+2. View load details in sidebar or modal
+3. Choose from available drivers with status indicators
+4. Confirm assignment with automatic notification option
+5. Update load status and close dialog
+6. Visual confirmation of assignment in loads table
+
+**Communication Flow**:
+1. Select driver or customer for communication
+2. Choose communication type (Telegram, email, SMS)
+3. Generate AI-powered content or use templates
+4. Review and edit message content
+5. Send message with delivery confirmation
+6. Track communication history in dedicated section
+
+**Reporting Flow**:
+1. Access reports from main navigation
+2. Select pre-built report or create custom report
+3. Configure date ranges and filters
+4. Preview report with real-time data
+5. Export or schedule for recurring delivery
+6. Save report configuration for future use

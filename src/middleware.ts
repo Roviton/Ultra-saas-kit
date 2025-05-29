@@ -19,6 +19,39 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
+  // Role-based access control for Ultra21.com freight dispatch platform
+  if (session && req.nextUrl.pathname.startsWith('/dashboard')) {
+    try {
+      // Get user's profile to check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, organization_id')
+        .eq('id', session.user.id)
+        .single()
+
+      // Check role-based access
+      if (profile) {
+        const role = profile.role as string
+
+        // Admin-only routes
+        const adminRoutes = [
+          '/dashboard/admin',
+          '/dashboard/analytics', 
+          '/dashboard/settings/organization',
+          '/dashboard/settings/users'
+        ]
+
+        // Check if trying to access admin-only routes as a dispatcher
+        if (role === 'dispatcher' && adminRoutes.some(route => req.nextUrl.pathname.startsWith(route))) {
+          return NextResponse.redirect(new URL('/dashboard/unauthorized', req.url))
+        }
+      }
+    } catch (error) {
+      console.error('Error in role-based access control middleware:', error)
+      // Continue to the requested page - we'll let the page-level protection handle it
+    }
+  }
+
   return res
 }
 
