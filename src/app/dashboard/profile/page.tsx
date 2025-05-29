@@ -75,7 +75,16 @@ export default function ProfileSettings() {
           }
         }
         
-        setProfile(keepProfile)
+        if (keepProfile) {
+          setProfile({
+            id: keepProfile.id,
+            username: keepProfile.username,
+            full_name: keepProfile.full_name,
+            avatar_url: keepProfile.avatar_url,
+            website: keepProfile.website,
+            email: keepProfile.email
+          })
+        }
       }
       // Handle no profile case
       else if (!profiles || profiles.length === 0) {
@@ -100,12 +109,31 @@ export default function ProfileSettings() {
           throw new Error(`Failed to create profile: ${insertError.message}`)
         }
 
-        setProfile(newProfile)
+        if (newProfile) {
+          setProfile({
+            id: newProfile.id,
+            username: newProfile.username,
+            full_name: newProfile.full_name,
+            avatar_url: newProfile.avatar_url,
+            website: newProfile.website,
+            email: newProfile.email
+          })
+        }
       }
       // Handle single profile case
       else {
         console.log('Single profile found')
-        setProfile(profiles[0])
+        const profile = profiles[0];
+        if (profile) {
+          setProfile({
+            id: profile.id,
+            username: profile.username,
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url,
+            website: profile.website,
+            email: profile.email
+          })
+        }
       }
 
     } catch (error) {

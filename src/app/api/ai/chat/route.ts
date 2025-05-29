@@ -3,12 +3,23 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Make OpenAI initialization conditional
+let openai: OpenAI | null = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 export async function POST(req: Request) {
   try {
+    // Check if OpenAI is configured
+    if (!openai) {
+      return NextResponse.json(
+        { error: 'OpenAI is not configured. Please add your API key to the environment variables.' },
+        { status: 503 }
+      )
+    }
     const supabase = createRouteHandlerClient({ cookies })
     const { messages } = await req.json()
 
@@ -65,7 +76,7 @@ export async function POST(req: Request) {
       // Continue anyway since we've already made the API call
     }
 
-    return NextResponse.json(completion.choices[0].message)
+    return NextResponse.json(completion.choices[0]?.message ?? { content: "No response generated" })
   } catch (error) {
     console.error('Error in chat route:', error)
     return NextResponse.json(

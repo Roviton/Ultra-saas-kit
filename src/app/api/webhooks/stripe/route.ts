@@ -42,11 +42,11 @@ export async function POST(req: Request) {
 
         // Add subscription to database
         await supabase.from('customer_subscriptions').insert({
-          user_id: session.metadata?.userId,
+          user_id: session.metadata?.userId ?? '',
           subscription_id: subscription.id,
           status: subscription.status,
-          price_id: subscription.items.data[0].price.id,
-          quantity: subscription.items.data[0].quantity,
+          price_id: subscription.items.data[0]?.price?.id ?? '',
+          quantity: subscription.items.data[0]?.quantity ?? 1,
           cancel_at_period_end: subscription.cancel_at_period_end,
           cancel_at: subscription.cancel_at
             ? new Date(subscription.cancel_at * 1000).toISOString()
