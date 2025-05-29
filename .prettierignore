@@ -1,0 +1,35 @@
+# Build output
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Generated files
+coverage/
+*.min.js
+*.min.css
+
+# Cache
+.cache/
+
+# Misc
+.DS_Store
+*.log
+
+# Package files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Supabase
+supabase/migrations/
+
+# Public assets
+public/
+
+# Task files
+tasks/
+tasks.json
