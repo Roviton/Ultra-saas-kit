@@ -1,6 +1,7 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { canAccessRoute, getRedirectPath, UserRole } from '@/lib/roles'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
@@ -37,22 +38,23 @@ export async function middleware(req: NextRequest) {
         .eq('id', session.user.id)
         .single()
 
-      // Check role-based access
+      // Enhanced role-based access control for Ultra21 freight dispatch platform
       if (profile) {
-        const role = profile.role as string
-
-        // Admin-only routes
-        const adminRoutes = [
-          '/dashboard/admin',
-          '/dashboard/analytics', 
-          '/dashboard/settings/organization',
-          '/dashboard/settings/users'
-        ]
-
-        // Check if trying to access admin-only routes as a dispatcher
-        if (role === 'dispatcher' && adminRoutes.some(route => req.nextUrl.pathname.startsWith(route))) {
-          return NextResponse.redirect(new URL('/dashboard/unauthorized', req.url))
+        // Get the user's role and ensure it's valid type for our system
+        const userRole = profile.role as UserRole;
+        
+        // Get current path
+        const currentPath = req.nextUrl.pathname;
+        
+        // Check if user has access to the requested route
+        if (!canAccessRoute(currentPath, userRole)) {
+          // Get appropriate redirect path for this route/role combination
+          const redirectPath = getRedirectPath(currentPath);
+          return NextResponse.redirect(new URL(redirectPath, req.url));
         }
+      } else {
+        // No profile found, redirect to unauthorized page
+        return NextResponse.redirect(new URL('/dashboard/unauthorized', req.url));
       }
     } catch (error) {
       console.error('Error in role-based access control middleware:', error)

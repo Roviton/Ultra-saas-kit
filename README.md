@@ -72,7 +72,7 @@ Before you begin, ensure you have the following installed:
    ```
 
 6. **Open Your Browser**
-   Visit [http://localhost:3000](http://localhost:3000) to see your application running.
+   Visit www.ultra21.com to see your application running.
 
 ## 🔧 Configuration Guide
 
