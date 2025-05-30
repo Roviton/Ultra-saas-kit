@@ -113,6 +113,24 @@ export function useRoleProtection(requiredRoles?: UserRole[], redirectTo?: strin
     return userRole === 'dispatcher'
   }
 
+  /**
+   * Check if the current user has driver role
+   * 
+   * @returns Whether the user is a driver
+   */
+  const isDriver = (): boolean => {
+    return userRole === 'driver'
+  }
+
+  /**
+   * Check if the current user has customer role
+   * 
+   * @returns Whether the user is a customer
+   */
+  const isCustomer = (): boolean => {
+    return userRole === 'customer'
+  }
+
   return {
     isAuthorized,
     isLoading,
@@ -122,5 +140,7 @@ export function useRoleProtection(requiredRoles?: UserRole[], redirectTo?: strin
     hasRole,
     isAdmin,
     isDispatcher,
+    isDriver,
+    isCustomer
   }
 }
