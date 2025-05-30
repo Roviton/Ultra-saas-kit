@@ -1,4 +1,5 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars */
+// @ts-ignore - Allow type errors in test files
 /**
  * Role-Based Access Control Tests
  * Tests role-specific components and route protection

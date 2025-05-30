@@ -118,11 +118,37 @@ jest.mock('../../lib/supabase/auth-context', () => ({
   useAuth: () => React.useContext(AuthContext),
 }));
 
+// Reusable custom render function with mocked auth context
+const renderWithMockAuth = (component: React.ReactNode, contextValue: Record<string, unknown> = {}) => {
+  return render(
+    <AuthContext.Provider value={{ 
+      user: null, 
+      profile: null,
+      isLoading: false, 
+      isAdmin: false,
+      isDispatcher: false,
+      isDriver: false,
+      isCustomer: false,
+      signIn: jest.fn().mockResolvedValue({ error: null }), 
+      signUp: jest.fn().mockResolvedValue({ error: null }),
+      signOut: jest.fn().mockResolvedValue(undefined),
+      refreshProfile: jest.fn().mockResolvedValue(undefined),
+      updateUserRole: jest.fn().mockResolvedValue({ success: true, error: null }),
+      refreshSession: jest.fn().mockResolvedValue(true),
+      isEmailVerified: false,
+      requireVerification: jest.fn().mockReturnValue(true),
+      ...contextValue 
+    }}>
+      {component}
+    </AuthContext.Provider>
+  );
+};
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-types */
 // Test component that uses the auth context
 interface TestComponentProps {
-  onSignIn?: (signIn: Function) => void;
-  onSignUp?: (signUp: Function) => void;
+  onSignIn?: (signIn: (email: string, password: string) => Promise<Record<string, unknown>>) => void;
+  onSignUp?: (signUp: (email: string, password: string, options?: Record<string, unknown>) => Promise<Record<string, unknown>>) => void;
   onSignOut?: () => void;
 }
 
@@ -310,7 +336,7 @@ describe('Authentication Flows', () => {
       <MockAuthProvider authState={{ signUp: mockSignUp }}>
         <TestComponent
           onSignUp={(signUp) => {
-            signUp('new@example.com', 'password', 'customer').then(onSignUp);
+            signUp('new@example.com', 'password', { role: 'customer' }).then(onSignUp);
           }}
         />
       </MockAuthProvider>
@@ -320,7 +346,7 @@ describe('Authentication Flows', () => {
     fireEvent.click(screen.getByTestId('sign-up-button'));
     
     // Verify signUp was called correctly with the right parameters
-    expect(mockSignUp).toHaveBeenCalledWith('new@example.com', 'password', 'customer');
+    expect(mockSignUp).toHaveBeenCalledWith('new@example.com', 'password', { role: 'customer' });
     
     // Wait for sign up to complete
     await waitFor(() => {
