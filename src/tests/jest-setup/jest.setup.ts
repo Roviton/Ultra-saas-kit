@@ -1,5 +1,18 @@
 // Jest setup file
 import '@testing-library/jest-dom'
+import 'whatwg-fetch'
+
+// Polyfill Response.json static if not available
+if (!(Response as any).json) {
+  // eslint-disable-next-line no-extend-native
+  (Response as any).json = (data: any, init?: ResponseInit) => new Response(JSON.stringify(data), {
+    ...init,
+    headers: {
+      'content-type': 'application/json',
+      ...(init?.headers || {}),
+    },
+  })
+}
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -54,15 +67,18 @@ jest.mock('@/lib/supabase/client', () => ({
   UserProfile: {}
 }))
 
-jest.mock('@/lib/supabase/session-manager', () => ({
-  sessionManager: {
-    initialize: jest.fn().mockResolvedValue(null),
-    setEventHandlers: jest.fn().mockReturnThis(),
-    refreshSession: jest.fn().mockResolvedValue(null),
-    signOut: jest.fn().mockResolvedValue(undefined),
-    cleanup: jest.fn()
+jest.mock('@/lib/supabase/session-manager', () => {
+  class MockSessionManager {
+    async initialize() { return null }
+    setEventHandlers() { return this }
+    async refreshSession() { return null }
+    async getSession() { return null }
+    async signOut() { /* noop */ }
+    cleanup() { /* noop */ }
+    onAuthStateChange(_cb: any) { return { unsubscribe: jest.fn() } }
   }
-}))
+  return { sessionManager: new MockSessionManager() }
+})
 
 // Mock URL constructor
 const originalURL = global.URL;
@@ -73,3 +89,6 @@ global.URL = function(url: string) {
 global.URL.createObjectURL = originalURL.createObjectURL;
 global.URL.revokeObjectURL = originalURL.revokeObjectURL;
 global.URL.canParse = originalURL.canParse;
+
+// Restore original URL class to keep searchParams support
+global.URL = originalURL

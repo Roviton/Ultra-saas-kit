@@ -43,11 +43,14 @@ export default function VerificationPage() {
           }
           
           if (user?.email_confirmed_at) {
+            // Force a fresh session so middleware recognises verification immediately
+            await supabase.auth.getSession()
+            
             setIsVerified(true)
-            // Wait 3 seconds before redirecting to dashboard
+            // Quick redirect
             setTimeout(() => {
               router.push('/dashboard')
-            }, 3000)
+            }, 500)
           } else {
             setIsVerified(false)
           }
