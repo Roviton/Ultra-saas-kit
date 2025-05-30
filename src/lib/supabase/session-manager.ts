@@ -113,15 +113,32 @@ export class SessionManager {
   }
 
   /**
+   * Legacy helper retained for backward-compat test suites.
+   * Performs a one-off async fetch of the current session without
+   * scheduling timers or side-effects.
+   */
+  public async getSession(): Promise<Session | null> {
+    try {
+      const { data } = await this.supabase.auth.getSession()
+      return data.session ?? null
+    } catch {
+      return null
+    }
+  }
+
+  /**
    * Calculate time remaining in session
    * @param session Active session
    * @returns Time in milliseconds until session expires
    */
   public getTimeUntilExpiry(session: Session): number {
     if (!session || !session.expires_at) return 0
-    const expiryTime = new Date(session.expires_at).getTime()
+    // Supabase `expires_at` is a Unix timestamp in **seconds**. Convert to milliseconds before comparison.
+    const expiryTimestamp = typeof session.expires_at === 'number'
+      ? (session.expires_at < 1e12 ? session.expires_at * 1000 : session.expires_at)
+      : new Date(session.expires_at).getTime()
     const currentTime = Date.now()
-    return Math.max(0, expiryTime - currentTime)
+    return Math.max(0, expiryTimestamp - currentTime)
   }
 
   /**
