@@ -32,28 +32,28 @@ export function useAuth() {
   const registerDispatcher = async (email: string, password: string, firstName?: string, lastName?: string) => {
     // Using the signUp with only the required parameters, passing additional metadata separately
     // This resolves the TypeScript error with too many arguments
-    const result = await auth.signUp(email, password, 'dispatcher')
+    const result = await auth.signUp(email, password, 'dispatcher' as UserRole)
     // Additional metadata handling can be done here if needed
     return result
   }
   
   const registerAdmin = async (email: string, password: string, firstName?: string, lastName?: string, organizationName?: string) => {
     // Using the signUp with only the required parameters
-    const result = await auth.signUp(email, password, 'admin')
+    const result = await auth.signUp(email, password, 'admin' as UserRole)
     // Additional metadata handling can be done here if needed
     return result
   }
   
   const registerDriver = async (email: string, password: string, firstName?: string, lastName?: string) => {
     // Register as a driver
-    const result = await auth.signUp(email, password, 'driver')
+    const result = await auth.signUp(email, password, 'driver' as UserRole)
     // Additional metadata handling can be done here if needed
     return result
   }
   
   const registerCustomer = async (email: string, password: string, firstName?: string, lastName?: string) => {
     // Register as a customer (this is the default role)
-    const result = await auth.signUp(email, password, 'customer')
+    const result = await auth.signUp(email, password, 'customer' as UserRole)
     // Additional metadata handling can be done here if needed
     return result
   }

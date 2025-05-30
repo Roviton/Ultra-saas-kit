@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userProfile: UserProfile = {
       id: userId,
       email: user?.email || '',
-      role: data.role as 'admin' | 'dispatcher' | 'driver' | 'customer',
+      role: data.role as UserRole,
       organizationId: data.organization_id,
       firstName: data.first_name,
       lastName: data.last_name

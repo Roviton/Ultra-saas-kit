@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/supabase/auth-context'
-import { UserRole } from '@/lib/supabase/client'
+import { UserRole } from '@/lib/roles'
 
 /**
  * Hook to handle authentication-based redirects for the Ultra21 freight platform

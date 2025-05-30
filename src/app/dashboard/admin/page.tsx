@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, useHasRole } from '@/lib/supabase/auth-context'
+import { UserRole } from '@/lib/roles'
 import { createSupabaseBrowserClient, UserProfile } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -51,7 +52,7 @@ export default function AdminDashboardPage() {
         const formattedProfiles: UserProfile[] = profilesData.map(profile => ({
           id: profile.id,
           email: profile.email || '',
-          role: profile.role as 'admin' | 'dispatcher',
+          role: profile.role as UserRole,
           organizationId: profile.organization_id,
           firstName: profile.first_name,
           lastName: profile.last_name

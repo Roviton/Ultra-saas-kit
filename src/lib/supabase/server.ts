@@ -2,6 +2,7 @@ import { createServerComponentClient, createRouteHandlerClient } from '@supabase
 import { cookies, headers } from 'next/headers'
 import { Database } from '@/types/supabase'
 import { UserProfile } from './client'
+import { UserRole } from '@/lib/roles'
 
 // Create a Supabase client for server components
 export const createSupabaseServerClient = () => {
@@ -38,9 +39,9 @@ export const getServerUserProfile = async (): Promise<UserProfile | null> => {
   }
   
   return {
-    id: user.id,
+    id: profile.id,
     email: user.email || '',
-    role: profile.role as 'admin' | 'dispatcher',
+    role: profile.role as UserRole,
     organizationId: profile.organization_id,
     firstName: profile.first_name,
     lastName: profile.last_name
@@ -49,7 +50,7 @@ export const getServerUserProfile = async (): Promise<UserProfile | null> => {
 
 // Check if the current user in a server component has a specific role
 export const serverHasRole = async (
-  roles: ('admin' | 'dispatcher') | ('admin' | 'dispatcher')[]
+  roles: UserRole | UserRole[]
 ): Promise<boolean> => {
   const profile = await getServerUserProfile()
   

@@ -1,3 +1,5 @@
+import { UserRole } from '@/lib/roles'
+
 export type Json =
   | string
   | number
@@ -16,7 +18,7 @@ export interface Database {
           username: string | null
           avatar_url: string | null
           organization_id: string
-          role: 'admin' | 'dispatcher'
+          role: UserRole
           created_at: string
           updated_at: string
         }
@@ -26,7 +28,7 @@ export interface Database {
           username?: string | null
           avatar_url?: string | null
           organization_id: string
-          role?: 'admin' | 'dispatcher'
+          role?: UserRole
           created_at?: string
           updated_at?: string
         }
@@ -36,7 +38,7 @@ export interface Database {
           username?: string | null
           avatar_url?: string | null
           organization_id?: string
-          role?: 'admin' | 'dispatcher'
+          role?: UserRole
           created_at?: string
           updated_at?: string
         }
