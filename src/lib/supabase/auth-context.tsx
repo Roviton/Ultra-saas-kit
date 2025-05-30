@@ -5,25 +5,38 @@ import { Session, User } from '@supabase/supabase-js'
 import { createSupabaseBrowserClient, UserProfile } from './client'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/roles' // Import UserRole type from roles.ts
+import { sessionManager } from './session-manager' // Import the SessionManager
 
 interface AuthContextType {
+  // User state
   user: User | null
   profile: UserProfile | null
   session: Session | null
   isLoading: boolean
+  
+  // Role flags
   isAdmin: boolean
   isDispatcher: boolean
   isDriver: boolean
   isCustomer: boolean
+  
+  // Account status
   isEmailVerified?: boolean
+  
+  // Authentication methods
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signUp: (email: string, password: string, role?: UserRole) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  
   // Role management functions
   updateUserRole: (userId: string, newRole: UserRole) => Promise<{ success: boolean, error: Error | null }>
+  
   // Email verification helper
   requireVerification?: (routerToUse?: any, redirectPath?: string) => boolean
+  
+  // Session management
+  refreshSession: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -176,16 +189,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  // Sign out
+  // Sign out user using SessionManager
   const signOut = async () => {
-    await supabase.auth.signOut()
+    await sessionManager.signOut()
     setUser(null)
-    setSession(null)
     setProfile(null)
+    setSession(null)
     setIsAdmin(false)
     setIsDispatcher(false)
+    setIsDriver(false)
+    setIsCustomer(false)
     router.refresh()
-    router.push('/auth')
+    router.push('/auth/signin')
   }
 
   // Effect to initialize authentication state
@@ -193,8 +208,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initAuth = async () => {
       setIsLoading(true)
       
-      // Get the initial session
-      const { data: { session: initialSession } } = await supabase.auth.getSession()
+      // Initialize session manager with appropriate callbacks
+      sessionManager.setEventHandlers({
+        onSessionRefreshed: async (updatedSession) => {
+          setSession(updatedSession)
+          setUser(updatedSession.user)
+          if (updatedSession.user) {
+            await fetchProfile(updatedSession.user.id)
+          }
+        },
+        onSessionExpired: () => {
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+          setIsAdmin(false)
+          setIsDispatcher(false)
+          setIsDriver(false)
+          setIsCustomer(false)
+        },
+        onError: (error) => {
+          console.error('Auth session error:', error)
+        }
+      })
+
+      // Get initial session through session manager
+      const initialSession = await sessionManager.initialize()
+      
       setSession(initialSession)
       
       if (initialSession?.user) {
@@ -216,6 +255,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setProfile(null)
             setIsAdmin(false)
             setIsDispatcher(false)
+            setIsDriver(false)
+            setIsCustomer(false)
           }
           
           router.refresh()
@@ -224,6 +265,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       return () => {
         subscription.unsubscribe()
+        sessionManager.cleanup()
       }
     }
     
@@ -239,6 +281,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return false
     }
     return true
+  }
+
+  // Function to refresh the session using SessionManager
+  const refreshSession = async () => {
+    try {
+      const refreshedSession = await sessionManager.refreshSession()
+      return !!refreshedSession
+    } catch (err) {
+      console.error('Session refresh failed:', err)
+      return false
+    }
   }
 
   return (
@@ -258,7 +311,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signOut,
         refreshProfile,
         updateUserRole,
-        requireVerification
+        requireVerification,
+        refreshSession
       }}
     >
       {children}
@@ -284,4 +338,54 @@ export const useHasRole = (roles: UserRole | UserRole[]) => {
   if (!auth.profile) return false
   
   return roleArray.includes(auth.profile.role)
+}
+
+// Role-specific hooks for easier role checks in components
+export const useIsAdmin = () => {
+  const auth = useAuth()
+  return auth.isAdmin
+}
+
+export const useIsDispatcher = () => {
+  const auth = useAuth()
+  return auth.isDispatcher
+}
+
+export const useIsDriver = () => {
+  const auth = useAuth()
+  return auth.isDriver
+}
+
+export const useIsCustomer = () => {
+  const auth = useAuth()
+  return auth.isCustomer
+}
+
+// Hooks for authentication state
+export const useAuthState = () => {
+  const auth = useAuth()
+  return {
+    isAuthenticated: !!auth.user,
+    isLoading: auth.isLoading,
+    isVerified: auth.isEmailVerified
+  }
+}
+
+// Hook for user profile data
+export const useProfile = () => {
+  const auth = useAuth()
+  return auth.profile
+}
+
+// Utility hook for authentication actions
+export const useAuthActions = () => {
+  const auth = useAuth()
+  return {
+    signIn: auth.signIn,
+    signUp: auth.signUp,
+    signOut: auth.signOut,
+    refreshProfile: auth.refreshProfile,
+    updateUserRole: auth.updateUserRole,
+    refreshSession: auth.refreshSession
+  }
 }
