@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Session, User } from '@supabase/supabase-js'
 import { createSupabaseBrowserClient, UserProfile } from './client'
 import { useRouter } from 'next/navigation'
+import { UserRole } from '@/lib/roles' // Import UserRole type from roles.ts
 
 interface AuthContextType {
   user: User | null
@@ -12,10 +13,17 @@ interface AuthContextType {
   isLoading: boolean
   isAdmin: boolean
   isDispatcher: boolean
+  isDriver: boolean
+  isCustomer: boolean
+  isEmailVerified?: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
-  signUp: (email: string, password: string, role?: 'admin' | 'dispatcher') => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string, role?: UserRole) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  // Role management functions
+  updateUserRole: (userId: string, newRole: UserRole) => Promise<{ success: boolean, error: Error | null }>
+  // Email verification helper
+  requireVerification?: (routerToUse?: any, redirectPath?: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -29,6 +37,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isDispatcher, setIsDispatcher] = useState(false)
+  const [isDriver, setIsDriver] = useState(false)
+  const [isCustomer, setIsCustomer] = useState(false)
 
   // Function to fetch user profile data
   const fetchProfile = async (userId: string) => {
@@ -48,15 +58,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userProfile: UserProfile = {
       id: userId,
       email: user?.email || '',
-      role: data.role as 'admin' | 'dispatcher',
+      role: data.role as 'admin' | 'dispatcher' | 'driver' | 'customer',
       organizationId: data.organization_id,
       firstName: data.first_name,
       lastName: data.last_name
     }
 
     setProfile(userProfile)
+    // Set role flags based on user's role
     setIsAdmin(userProfile.role === 'admin')
     setIsDispatcher(userProfile.role === 'dispatcher')
+    setIsDriver(userProfile.role === 'driver')
+    setIsCustomer(userProfile.role === 'customer')
 
     return userProfile
   }
@@ -94,11 +107,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  // Function to update a user's role (admin only)
+  const updateUserRole = async (userId: string, newRole: UserRole) => {
+    try {
+      // Check if the current user is an admin
+      if (!isAdmin) {
+        return { 
+          success: false, 
+          error: new Error('Only administrators can change user roles') 
+        }
+      }
+
+      // Call the Supabase RPC function to update the role
+      const { data, error } = await supabase.rpc('set_user_role', {
+        user_id: userId,
+        new_role: newRole
+      })
+
+      if (error) {
+        console.error('Error updating user role:', error)
+        return { success: false, error }
+      }
+
+      // Refresh current user's profile if they're updating their own role
+      if (user && user.id === userId) {
+        await refreshProfile()
+      }
+
+      return { success: true, error: null }
+    } catch (error) {
+      console.error('Error in updateUserRole:', error)
+      return { success: false, error: error as Error }
+    }
+  }
+
   // Sign up with email and password
   const signUp = async (
     email: string, 
     password: string, 
-    role: 'admin' | 'dispatcher' = 'dispatcher',
+    role: UserRole = 'customer',
     firstName?: string,
     lastName?: string,
     organizationName?: string
@@ -185,29 +232,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isEmailVerified = user?.email_confirmed_at ? true : false
 
-  const value = {
-    user,
-    profile,
-    session,
-    isLoading,
-    isAdmin,
-    isDispatcher,
-    isEmailVerified,
-    signUp,
-    signIn,
-    signOut,
-    refreshProfile,
-    // Helper method to enforce email verification
-    requireVerification: (routerToUse: any = router, redirectPath: string = '/auth/verification') => {
-      if (user && !isEmailVerified) {
-        routerToUse.push(redirectPath)
-        return false
-      }
-      return true
+  // Helper method to enforce email verification
+  const requireVerification = (routerToUse: any = router, redirectPath: string = '/auth/verification') => {
+    if (user && !isEmailVerified) {
+      routerToUse.push(redirectPath)
+      return false
     }
+    return true
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        session,
+        isLoading,
+        isAdmin,
+        isDispatcher,
+        isDriver,
+        isCustomer,
+        isEmailVerified,
+        signIn,
+        signUp,
+        signOut,
+        refreshProfile,
+        updateUserRole,
+        requireVerification
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => {
@@ -219,16 +275,13 @@ export const useAuth = () => {
 }
 
 // Custom hook to check if the user has a specific role
-export const useHasRole = (roles: ('admin' | 'dispatcher') | ('admin' | 'dispatcher')[]) => {
-  const { profile } = useAuth()
+export const useHasRole = (roles: UserRole | UserRole[]) => {
+  const auth = useAuth()
   
-  if (!profile) {
-    return false
-  }
+  // Convert single role to array for consistency
+  const roleArray = Array.isArray(roles) ? roles : [roles]
   
-  if (Array.isArray(roles)) {
-    return roles.includes(profile.role)
-  }
+  if (!auth.profile) return false
   
-  return profile.role === roles
+  return roleArray.includes(auth.profile.role)
 }

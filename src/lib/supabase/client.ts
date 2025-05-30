@@ -1,9 +1,10 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
+import { UserRole } from '@/lib/roles' // Import UserRole from roles.ts
 
-// Type definitions for user roles
-export type UserRole = 'admin' | 'dispatcher'
+// Re-export UserRole type for backward compatibility
+export type { UserRole } from '@/lib/roles'
 
 // Extended user profile with role information
 export interface UserProfile {
@@ -95,4 +96,18 @@ export const isDispatcher = async (
   supabase: ReturnType<typeof createSupabaseBrowserClient>
 ): Promise<boolean> => {
   return hasRole(supabase, 'dispatcher')
+}
+
+// Check if a user is a driver
+export const isDriver = async (
+  supabase: ReturnType<typeof createSupabaseBrowserClient>
+): Promise<boolean> => {
+  return hasRole(supabase, 'driver')
+}
+
+// Check if a user is a customer
+export const isCustomer = async (
+  supabase: ReturnType<typeof createSupabaseBrowserClient>
+): Promise<boolean> => {
+  return hasRole(supabase, 'customer')
 }

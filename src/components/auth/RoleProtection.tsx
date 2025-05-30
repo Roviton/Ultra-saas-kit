@@ -105,3 +105,17 @@ export function AdminOnly({ children, fallback = null }: { children: ReactNode; 
 export function DispatcherOnly({ children, fallback = null }: { children: ReactNode; fallback?: ReactNode }) {
   return <RoleGated allowedRoles={['admin', 'dispatcher']} fallback={fallback}>{children}</RoleGated>
 }
+
+/**
+ * A component that only renders for driver users (and admins)
+ */
+export function DriverOnly({ children, fallback = null }: { children: ReactNode; fallback?: ReactNode }) {
+  return <RoleGated allowedRoles={['admin', 'driver']} fallback={fallback}>{children}</RoleGated>
+}
+
+/**
+ * A component that only renders for customer users (and admins)
+ */
+export function CustomerOnly({ children, fallback = null }: { children: ReactNode; fallback?: ReactNode }) {
+  return <RoleGated allowedRoles={['admin', 'customer']} fallback={fallback}>{children}</RoleGated>
+}
