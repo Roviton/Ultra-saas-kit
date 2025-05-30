@@ -6,6 +6,7 @@ import { UserCircleIcon, ShieldCheckIcon, TruckIcon } from '@heroicons/react/24/
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/supabase/auth-context'
 import { SignOutButton } from '@/components/auth/SignOutButton'
+import { UserRole } from '@/lib/roles'
 
 interface Profile {
   id: string
@@ -14,7 +15,7 @@ interface Profile {
   avatar_url?: string | null
   website?: string
   email?: string
-  role?: 'admin' | 'dispatcher'
+  role?: UserRole
   organization_id?: string | null
   first_name?: string
   last_name?: string
