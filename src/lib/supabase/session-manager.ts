@@ -1,5 +1,10 @@
 import { createSupabaseBrowserClient } from './client'
-import { Session } from '@supabase/supabase-js'
+import { Session, User, SupabaseClient } from '@supabase/supabase-js'
+
+// Helper types for tests and type-safety
+export type AuthChangeEvent = 'SIGNED_IN' | 'SIGNED_OUT' | 'USER_UPDATED' | 'TOKEN_REFRESHED'
+export type AuthSubscription = { unsubscribe: () => void }
+export type AuthChangeCallback = (event: AuthChangeEvent, session: Session | null) => void
 
 /**
  * Session Manager for handling auth session persistence, expiry, and refresh
@@ -124,6 +129,20 @@ export class SessionManager {
     } catch {
       return null
     }
+  }
+
+  /**
+   * Subscribe to auth state changes
+   * This is an adapter method for test compatibility
+   */
+  public onAuthStateChange(callback: AuthChangeCallback): AuthSubscription {
+    // Use the underlying Supabase auth.onAuthStateChange method
+    const { data } = this.supabase.auth.onAuthStateChange((event, session) => {
+      // Convert Supabase event to our internal event type and call the callback
+      callback(event as AuthChangeEvent, session)
+    })
+    
+    return data.subscription
   }
 
   /**
