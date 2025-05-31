@@ -179,6 +179,8 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
                   >
                     <option value="dispatcher">Dispatcher</option>
                     <option value="admin">Administrator</option>
+                    <option value="driver">Driver</option>
+                    <option value="customer">Customer</option>
                   </select>
                 </div>
                 
