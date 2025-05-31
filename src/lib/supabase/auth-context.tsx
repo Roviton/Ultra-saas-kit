@@ -61,7 +61,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .eq('id', userId)
       .single()
 
-    if (error) {
+    // PostgREST returns PGRST116 when 0 rows - treat as "no profile yet"
+    if (error && (error as any).code !== 'PGRST116') {
       console.error('Error fetching profile:', error)
       return null
     }
@@ -69,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // If no profile row exists yet, create a minimal one so the app can proceed
     let profileRow = data
     if (!profileRow) {
+      // At this stage, we know the select returned 0 rows or null.
       const { error: insertError } = await supabase.from('profiles').insert({
         id: userId,
         email: user?.email || null,
