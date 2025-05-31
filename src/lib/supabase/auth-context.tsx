@@ -66,15 +66,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null
     }
 
-    if (!data) return null
+    // If no profile row exists yet, create a minimal one so the app can proceed
+    let profileRow = data
+    if (!profileRow) {
+      const { error: insertError } = await supabase.from('profiles').insert({
+        id: userId,
+        email: user?.email || null,
+        role: 'customer', // default role
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+
+      if (insertError) {
+        console.error('Error inserting default profile:', insertError)
+        return null
+      }
+
+      // Re-select the row we just created
+      const { data: newData, error: reselectError } = await supabase
+        .from('profiles')
+        .select('id, role, organization_id, first_name, last_name')
+        .eq('id', userId)
+        .single()
+
+      if (reselectError || !newData) {
+        console.error('Could not reselect inserted profile:', reselectError)
+        return null
+      }
+
+      profileRow = newData
+    }
 
     const userProfile: UserProfile = {
       id: userId,
       email: user?.email || '',
-      role: data.role as UserRole,
-      organizationId: data.organization_id,
-      firstName: data.first_name,
-      lastName: data.last_name
+      role: profileRow.role as UserRole,
+      organizationId: profileRow.organization_id,
+      firstName: profileRow.first_name,
+      lastName: profileRow.last_name
     }
 
     setProfile(userProfile)
