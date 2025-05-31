@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, AlertCircle, MailCheck, Loader2 } from 'lucide-react'
@@ -49,7 +49,7 @@ export default function VerificationPage() {
             setIsVerified(true)
             // Quick redirect
             setTimeout(() => {
-              router.push('/dashboard')
+              goToDashboard()
             }, 500)
           } else {
             setIsVerified(false)
@@ -67,6 +67,18 @@ export default function VerificationPage() {
     }
     
     checkSession()
+  }, [router, supabase])
+
+  // Helper to ensure session is fully refreshed before navigating
+  const goToDashboard = useCallback(async () => {
+    try {
+      // Ensure latest session is persisted so middleware sees a valid session
+      await supabase.auth.refreshSession()
+    } catch (err) {
+      console.error('Failed to refresh session before dashboard redirect:', err)
+    } finally {
+      router.push('/dashboard')
+    }
   }, [router, supabase])
 
   if (isLoading) {
@@ -160,7 +172,7 @@ export default function VerificationPage() {
               Your account is now fully activated. You'll be redirected to the dashboard in a moment.
             </p>
             <div className="pt-2">
-              <Button onClick={() => router.push('/dashboard')} className="w-full">
+              <Button onClick={goToDashboard} className="w-full">
                 Go to Dashboard
               </Button>
             </div>
