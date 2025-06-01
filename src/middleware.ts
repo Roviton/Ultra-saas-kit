@@ -1,81 +1,80 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { canAccessRoute, getRedirectPath, UserRole } from '@/lib/roles'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { canAccessRoute, getRedirectPath, UserRole } from '@/lib/roles';
+import { getAuth } from '@clerk/nextjs/server';
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+// Define public routes that don't require authentication
+const publicRoutes = [
+  '/',
+  '/auth/sign-in',
+  '/auth/sign-up',
+  '/api/webhook/clerk',
+  '/terms',
+  '/privacy',
+  // Add any other public routes here
+];
 
-  // Refresh session if expired - required for Server Components
-  const { data: { session } } = await supabase.auth.getSession()
-
-  // If user is not signed in and trying to access protected routes, redirect to login
-  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/auth', req.url))
+// Middleware function to handle authentication and role-based access control
+export async function middleware(request: NextRequest) {
+  // Get the pathname from the request
+  const path = request.nextUrl.pathname;
+  
+  // Allow public routes to proceed without authentication
+  if (publicRoutes.includes(path)) {
+    return NextResponse.next();
   }
-
+  
+  // Get authentication data
+  const { userId, sessionClaims } = getAuth(request);
+  
+  // If user is not signed in and trying to access protected routes, redirect to sign-in
+  if (!userId && path.startsWith('/dashboard')) {
+    const signInUrl = new URL('/auth/sign-in', request.url);
+    // Preserve the original URL to redirect back after sign-in
+    signInUrl.searchParams.set('redirect_url', request.url);
+    return NextResponse.redirect(signInUrl);
+  }
+  
   // If user is signed in and trying to access auth pages, redirect to dashboard
-  if (session && (req.nextUrl.pathname === '/auth' || req.nextUrl.pathname === '/')) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  if (userId && (path === '/auth/sign-in' || path === '/auth/sign-up' || path === '/')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
-
-  // Email verification enforcement for Ultra21.com freight dispatch platform
-  if (session && req.nextUrl.pathname.startsWith('/dashboard')) {
-    // Check if email is verified
-    const isEmailVerified = session.user?.email_confirmed_at ? true : false
-    
-    // If email is not verified and not already on the verification page, redirect to verification
-    if (!isEmailVerified && !req.nextUrl.pathname.includes('/auth/verification')) {
-      return NextResponse.redirect(new URL('/auth/verification', req.url))
-    }
-    
+  
+  // For protected routes, check role-based access
+  if (userId && path.startsWith('/dashboard')) {
     try {
-      // Get user's profile to check role
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, organization_id')
-        .eq('id', session.user.id)
-        .single()
-
-      // Enhanced role-based access control for Ultra21 freight dispatch platform
-      if (profile) {
-        // Get the user's role and ensure it's valid type for our system
-        const userRole = profile.role as UserRole;
-        
-        // Get current path
-        const currentPath = req.nextUrl.pathname;
-        
-        // Check if user has access to the requested route
-        if (!canAccessRoute(currentPath, userRole)) {
-          // Get appropriate redirect path for this route/role combination
-          const redirectPath = getRedirectPath(currentPath);
-          return NextResponse.redirect(new URL(redirectPath, req.url));
-        }
-      } else {
-        // No profile found, redirect to unauthorized page
-        return NextResponse.redirect(new URL('/dashboard/unauthorized', req.url));
+      // Get user role from session claims metadata
+      const metadata = sessionClaims?.metadata as Record<string, unknown> | undefined;
+      const userRole = (metadata?.role as UserRole) || 'dispatcher';
+      
+      // Check if user has access to the requested route
+      if (!canAccessRoute(path, userRole)) {
+        // Get appropriate redirect path for this role
+        const redirectPath = getRedirectPath(userRole);
+        console.log(`User with role ${userRole} attempted to access ${path}, redirecting to ${redirectPath}`);
+        return NextResponse.redirect(new URL(redirectPath, request.url));
       }
     } catch (error) {
-      console.error('Error in role-based access control middleware:', error)
-      // Continue to the requested page - we'll let the page-level protection handle it
+      console.error('Error in role-based access control middleware:', error);
+      // On error, redirect to dashboard homepage as a fallback
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
-
-  return res
+  
+  // Allow the request to proceed
+  return NextResponse.next();
 }
 
-// Specify which routes should be handled by the middleware
+// Export the Clerk middleware config
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public (public files)
-     * - api (API routes)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public|api).*)',
+    // Skip Next.js internals and all static files
+    '/((?!_next|static|favicon.ico|.*\.(?:jpg|jpeg|gif|png|svg|ico|webp|webm|mp4|css|js|woff|woff2|ttf|otf)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+    // Run for auth and dashboard routes
+    '/(auth|dashboard)(.*)',
+    // Run for the homepage
+    '/'
   ],
-} 
+};
