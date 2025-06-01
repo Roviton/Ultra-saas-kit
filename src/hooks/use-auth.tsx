@@ -1,86 +1,94 @@
 'use client'
 
-import { useAuth as useSupabaseAuth } from '@/lib/supabase/auth-context'
 import { useRouter } from 'next/navigation'
+import { useClerk, useUser } from '@clerk/nextjs'
 import { UserRole } from '@/lib/roles'
 
 /**
  * Custom hook for freight dispatch platform authentication
- * Extends the base Supabase auth hook with convenience functions
+ * Uses Clerk authentication with role-based helpers
  */
 export function useAuth() {
-  const auth = useSupabaseAuth()
+  const { user, isLoaded, isSignedIn } = useUser()
+  const { signOut } = useClerk()
   const router = useRouter()
   
-  // Additional helper functions specific to freight dispatch platform
-  const loginAsDispatcher = async (email: string, password: string) => {
-    return auth.signIn(email, password)
+  // Get user role from Clerk metadata
+  const userRole = user?.publicMetadata?.role as UserRole | null
+  
+  // Extract profile information
+  const profile = user ? {
+    id: user.id,
+    email: user.primaryEmailAddress?.emailAddress,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: userRole,
+    avatarUrl: user.imageUrl,
+    organizationId: user.publicMetadata?.organizationId as string | undefined,
+    organizationName: user.publicMetadata?.organizationName as string | undefined
+  } : null
+  
+  // Sign out function
+  const logout = async () => {
+    await signOut()
+    router.push('/')
   }
   
-  const loginAsAdmin = async (email: string, password: string) => {
-    return auth.signIn(email, password)
+  // Redirect helpers
+  const redirectToDashboard = () => {
+    router.push('/dashboard')
   }
   
-  const loginAsDriver = async (email: string, password: string) => {
-    return auth.signIn(email, password)
+  const redirectToLogin = () => {
+    router.push('/auth/sign-in')
   }
   
-  const loginAsCustomer = async (email: string, password: string) => {
-    return auth.signIn(email, password)
+  const redirectToSignup = () => {
+    router.push('/auth/sign-up')
   }
   
-  const registerDispatcher = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    // Using the signUp with only the required parameters, passing additional metadata separately
-    // This resolves the TypeScript error with too many arguments
-    const result = await auth.signUp(email, password, 'dispatcher' as UserRole)
-    // Additional metadata handling can be done here if needed
-    return result
+  const redirectToUnauthorized = () => {
+    router.push('/dashboard/unauthorized')
   }
   
-  const registerAdmin = async (email: string, password: string, firstName?: string, lastName?: string, organizationName?: string) => {
-    // Using the signUp with only the required parameters
-    const result = await auth.signUp(email, password, 'admin' as UserRole)
-    // Additional metadata handling can be done here if needed
-    return result
+  // Check if user has a specific role
+  const hasRole = (role: UserRole | UserRole[]) => {
+    if (!userRole) return false
+    
+    if (Array.isArray(role)) {
+      return role.includes(userRole)
+    }
+    
+    return role === userRole
   }
   
-  const registerDriver = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    // Register as a driver
-    const result = await auth.signUp(email, password, 'driver' as UserRole)
-    // Additional metadata handling can be done here if needed
-    return result
-  }
+  // Check if user is admin (admins can access everything)
+  const isAdmin = () => userRole === 'admin'
   
-  const registerCustomer = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    // Register as a customer (this is the default role)
-    const result = await auth.signUp(email, password, 'customer' as UserRole)
-    // Additional metadata handling can be done here if needed
-    return result
-  }
+  // Check if user is dispatcher
+  const isDispatcher = () => userRole === 'dispatcher'
   
-  const logout = async (redirectPath: string = '/auth') => {
-    await auth.signOut()
-    router.push(redirectPath)
-  }
+  // Check if user is driver
+  const isDriver = () => userRole === 'driver'
+  
+  // Check if user is customer
+  const isCustomer = () => userRole === 'customer'
   
   return {
-    ...auth,
-    // Role-specific convenience functions
-    loginAsDispatcher,
-    loginAsAdmin,
-    loginAsDriver,
-    loginAsCustomer,
-    registerDispatcher,
-    registerAdmin,
-    registerDriver,
-    registerCustomer,
-    logout,
-    // Role-specific properties
-    isAuthenticated: !!auth.user,
-    isLoading: auth.isLoading,
-    userRole: auth.profile?.role || null,
-    userName: auth.profile?.firstName ? 
-      `${auth.profile.firstName} ${auth.profile.lastName || ''}`.trim() : 
-      auth.user?.email?.split('@')[0] || 'User'
+    user,                // Clerk user object
+    profile,             // Formatted user profile
+    isLoading: !isLoaded, // Loading state (inverted from Clerk for compatibility)
+    isAuthenticated: isSignedIn,
+    userRole,            // User role from metadata
+    signOut: logout,     // Sign out function
+    hasRole,             // Role checking function
+    isAdmin,             // Admin check
+    isDispatcher,        // Dispatcher check
+    isDriver,            // Driver check
+    isCustomer,          // Customer check
+    redirectToDashboard,
+    redirectToLogin,
+    redirectToSignup,
+    redirectToUnauthorized
   }
 }

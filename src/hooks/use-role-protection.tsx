@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { useAuth } from '@/hooks/use-auth'
 import { canAccessRoute, getRedirectPath, UserRole } from '@/lib/roles'
 import { useEffect, useState } from 'react'
 

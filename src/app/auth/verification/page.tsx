@@ -73,13 +73,23 @@ export default function VerificationPage() {
   const goToDashboard = useCallback(async () => {
     try {
       // Ensure latest session is persisted so middleware sees a valid session
-      await supabase.auth.refreshSession()
+      const { data, error } = await supabase.auth.refreshSession()
+      if (error) {
+        console.error('Session refresh error:', error)
+        throw error
+      }
+      
+      // Force a small delay to ensure the session is properly persisted
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Use window.location for a hard navigation instead of router.push
+      window.location.href = '/dashboard'
     } catch (err) {
       console.error('Failed to refresh session before dashboard redirect:', err)
-    } finally {
-      router.push('/dashboard')
+      // Fallback to direct navigation if refresh fails
+      window.location.href = '/dashboard'
     }
-  }, [router, supabase])
+  }, [supabase])
 
   if (isLoading) {
     return (
@@ -172,7 +182,10 @@ export default function VerificationPage() {
               Your account is now fully activated. You'll be redirected to the dashboard in a moment.
             </p>
             <div className="pt-2">
-              <Button onClick={goToDashboard} className="w-full">
+              <Button 
+                onClick={() => window.location.href = '/auth/verification/dashboard-redirect'} 
+                className="w-full"
+              >
                 Go to Dashboard
               </Button>
             </div>

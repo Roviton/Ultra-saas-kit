@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Button, ButtonProps } from '@/components/ui/button'
 import { LogOut, Loader2 } from 'lucide-react'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { useClerk } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 
 interface SignOutButtonProps extends Omit<ButtonProps, 'onClick'> {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
@@ -12,7 +13,7 @@ interface SignOutButtonProps extends Omit<ButtonProps, 'onClick'> {
 }
 
 /**
- * SignOutButton component that handles user sign-out
+ * SignOutButton component that handles user sign-out using Clerk
  * Uses standard UI components to avoid dependency on @radix-ui/react-alert-dialog
  */
 export function SignOutButton({ 
@@ -22,15 +23,13 @@ export function SignOutButton({
   children, 
   ...props 
 }: SignOutButtonProps) {
-  const { signOut, isAdmin, isDispatcher } = useAuth()
+  const { signOut } = useClerk()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isConfirmVisible, setIsConfirmVisible] = useState(false)
 
-  // Choose a variant based on user role if not explicitly specified
-  const roleBasedVariant = props.className?.includes('variant') ? variant : 
-    isAdmin ? 'destructive' : 
-    isDispatcher ? 'secondary' : 
-    'outline';
+  // Use the provided variant since we don't have role-based variants with Clerk yet
+  const buttonVariant = variant
 
   const handleSignOutClick = () => {
     if (showConfirmation) {
@@ -43,7 +42,10 @@ export function SignOutButton({
   const handleSignOut = async () => {
     setIsLoading(true)
     try {
-      await signOut()
+      await signOut(() => {
+        // Redirect to home page after sign out
+        router.push('/')
+      })
     } catch (error) {
       console.error('Error signing out:', error)
     } finally {
@@ -72,7 +74,7 @@ export function SignOutButton({
             Cancel
           </Button>
           <Button 
-            variant={roleBasedVariant} 
+            variant={buttonVariant} 
             onClick={handleSignOut}
             disabled={isLoading}
             size="sm"
@@ -91,7 +93,7 @@ export function SignOutButton({
 
   return (
     <Button
-      variant={roleBasedVariant}
+      variant={buttonVariant}
       onClick={showConfirmation ? handleSignOutClick : handleSignOut}
       disabled={isLoading}
       {...props}

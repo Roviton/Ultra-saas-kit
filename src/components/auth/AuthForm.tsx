@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/supabase/auth-context'
-import { UserRole } from '@/lib/supabase/client'
+import { UserRole } from '@/lib/roles'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
@@ -179,8 +179,6 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
                   >
                     <option value="dispatcher">Dispatcher</option>
                     <option value="admin">Administrator</option>
-                    <option value="driver">Driver</option>
-                    <option value="customer">Customer</option>
                   </select>
                 </div>
                 

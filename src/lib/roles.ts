@@ -48,27 +48,17 @@ export const ROUTE_ACCESS: Record<string, RouteAccess> = {
     redirect: '/dashboard/unauthorized',
   },
   
-  // Driver routes (accessible by admins, dispatchers, and drivers)
-  '/dashboard/driver': {
-    roles: ['admin', 'dispatcher', 'driver'],
-    redirect: '/dashboard/unauthorized',
-  },
-
-  // Customer routes (accessible by admins, dispatchers, and customers)
-  '/dashboard/customer': {
-    roles: ['admin', 'dispatcher', 'customer'],
-    redirect: '/dashboard/unauthorized',
-  },
+  // Removed driver and customer routes as they're no longer needed
   
   // Common routes accessible by all authenticated users
   '/dashboard': {
-    roles: ['admin', 'dispatcher', 'driver', 'customer'],
+    roles: ['admin', 'dispatcher'],
   },
   '/dashboard/profile': {
-    roles: ['admin', 'dispatcher', 'driver', 'customer'],
+    roles: ['admin', 'dispatcher'],
   },
   '/dashboard/billing': {
-    roles: ['admin', 'dispatcher', 'driver', 'customer'],
+    roles: ['admin', 'dispatcher'],
   },
 };
 
