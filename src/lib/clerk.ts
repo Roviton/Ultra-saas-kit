@@ -11,15 +11,11 @@ const configuredClerkClient = clerkClient as typeof clerkClient & {
   apiUrl?: string;
 };
 
-// Set API version explicitly to match environment variables
-if (process.env.CLERK_API_VERSION) {
-  // Only set if the environment variable is defined
-  configuredClerkClient.apiVersion = process.env.CLERK_API_VERSION;
-}
+// Set API version explicitly to a stable version
+// Using 2023-10-24 which is compatible with Clerk SDK v6.20.2
+configuredClerkClient.apiVersion = '2023-10-24';
 
-if (process.env.CLERK_API_URL) {
-  // Only set if the environment variable is defined
-  configuredClerkClient.apiUrl = process.env.CLERK_API_URL;
-}
+// Set API URL explicitly
+configuredClerkClient.apiUrl = 'https://api.clerk.com';
 
 export { configuredClerkClient };
