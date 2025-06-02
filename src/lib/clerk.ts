@@ -11,9 +11,9 @@ const configuredClerkClient = clerkClient as typeof clerkClient & {
   apiUrl?: string;
 };
 
-// Set API version explicitly to a stable version
-// Using 2023-10-24 which is compatible with Clerk SDK v6.20.2
-configuredClerkClient.apiVersion = '2023-10-24';
+// Set API version explicitly to match what Clerk is using
+// Using 2025-04-10 as seen in the network requests
+configuredClerkClient.apiVersion = '2025-04-10';
 
 // Set API URL explicitly
 configuredClerkClient.apiUrl = 'https://api.clerk.com';
