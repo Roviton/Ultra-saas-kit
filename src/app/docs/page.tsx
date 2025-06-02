@@ -259,7 +259,7 @@ export default function DocsPage() {
               <Link href="/features" className="text-white/80 hover:text-white transition-colors">
                 Features
               </Link>
-              <Link href="/auth" className="text-[#FFBE1A] hover:text-[#FFBE1A]/80 transition-colors">
+              <Link href="/auth/sign-in" className="text-[#FFBE1A] hover:text-[#FFBE1A]/80 transition-colors">
                 Sign In
               </Link>
             </nav>
