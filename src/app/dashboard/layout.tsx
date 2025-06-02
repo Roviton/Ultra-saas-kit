@@ -19,14 +19,14 @@ interface NavItem {
   icon: typeof HomeIcon
 }
 
-// Define navigation items with proper Next.js 15 route types
+// Define navigation items
 const navigation: NavItem[] = [
-  { name: 'Overview', href: '/dashboard' as const, icon: HomeIcon },
-  { name: 'Freight', href: '/dashboard/freight' as const, icon: TruckIcon },
-  { name: 'Analytics', href: '/dashboard/analytics' as const, icon: ChartBarIcon },
-  { name: 'Profile', href: '/dashboard/profile' as const, icon: UserCircleIcon },
-  { name: 'Documents', href: '/dashboard/documents' as const, icon: DocumentTextIcon },
-  { name: 'Settings', href: '/dashboard/settings' as const, icon: Cog6ToothIcon },
+  { name: 'Overview', href: '/dashboard', icon: HomeIcon },
+  { name: 'Freight', href: '/dashboard/freight', icon: TruckIcon },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
+  { name: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
+  { name: 'Documents', href: '/dashboard/documents', icon: DocumentTextIcon },
+  { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
 ]
 
 export default function DashboardLayout({
