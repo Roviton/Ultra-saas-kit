@@ -1,3 +1,7 @@
+'use client';
+
+import { SignUp } from '@clerk/clerk-react';
+
 export default function SignUpPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-12">
@@ -9,8 +13,12 @@ export default function SignUpPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 px-4 py-8 shadow sm:rounded-lg sm:px-10">
-          {/* Clerk sign-up component will be loaded via the ClerkProvider */}
-          <div id="sign-up" />
+          <SignUp 
+            routing="path" 
+            path="/auth/sign-up" 
+            signInUrl="/auth/sign-in" 
+            redirectUrl="/dashboard"
+          />
         </div>
       </div>
     </div>
