@@ -31,24 +31,57 @@ export default function AuthForm({ view = 'sign-in', routing }: AuthFormProps) {
   
   // Check if Clerk is loaded
   useEffect(() => {
+    console.log('Checking if Clerk is loaded...');
+    
     // Check if Clerk components are available
     if (typeof SignIn === 'function' && typeof SignUp === 'function') {
-      setIsClerkLoaded(true)
+      console.log('Clerk components (SignIn, SignUp) are available as functions');
+      setIsClerkLoaded(true);
+    } else {
+      console.log('Clerk components not available as functions:', { 
+        SignIn: typeof SignIn, 
+        SignUp: typeof SignUp 
+      });
     }
     
     // Also check if Clerk script is loaded in window
     const checkClerkLoaded = () => {
-      if (typeof window !== 'undefined' && (window as any).__clerk_frontend_api) {
-        setIsClerkLoaded(true)
+      if (typeof window !== 'undefined') {
+        const clerkApi = (window as any).__clerk_frontend_api;
+        console.log('Clerk window API available:', !!clerkApi);
+        if (clerkApi) {
+          console.log('Clerk API version:', clerkApi.version);
+          setIsClerkLoaded(true);
+        }
       }
-    }
+    };
     
     // Check immediately and after a delay
-    checkClerkLoaded()
-    const timer = setTimeout(checkClerkLoaded, 1000)
+    checkClerkLoaded();
     
-    return () => clearTimeout(timer)
-  }, [])
+    // Check multiple times with increasing delays
+    const timers = [
+      setTimeout(() => {
+        console.log('Checking Clerk loaded state after 1s');
+        checkClerkLoaded();
+      }, 1000),
+      setTimeout(() => {
+        console.log('Checking Clerk loaded state after 3s');
+        checkClerkLoaded();
+      }, 3000),
+      setTimeout(() => {
+        console.log('Checking Clerk loaded state after 5s');
+        checkClerkLoaded();
+        // Force loaded state after 5s if still not detected
+        if (!isClerkLoaded) {
+          console.log('Forcing Clerk loaded state after 5s');
+          setIsClerkLoaded(true);
+        }
+      }, 5000)
+    ];
+    
+    return () => timers.forEach(clearTimeout);
+  }, [isClerkLoaded])
   
   // Handle errors at the component level
   useEffect(() => {
@@ -130,9 +163,11 @@ export default function AuthForm({ view = 'sign-in', routing }: AuthFormProps) {
         )}
 
         {!isClerkLoaded && (
-          <div className="p-4 border border-yellow-500 bg-yellow-500/10 rounded-lg text-white">
-            <p className="font-medium">Authentication components are loading...</p>
-            <p className="text-sm mt-1">If this message persists, please check your Clerk configuration and browser console for errors.</p>
+          <div className="p-8 border-2 border-yellow-500 bg-yellow-500/10 rounded-lg text-white flex flex-col items-center justify-center min-h-[300px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+            <p className="font-medium text-xl mb-2">Authentication components are loading...</p>
+            <p className="text-sm mt-1 text-center max-w-md">This may take a moment. If this message persists, please check your Clerk configuration and browser console for errors.</p>
+            <p className="text-xs mt-4 text-yellow-300">Debug info: {process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || 'No frontend API set'}</p>
           </div>
         )}
 
