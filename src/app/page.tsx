@@ -234,7 +234,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/auth?view=sign-up"
+                  href="/auth/sign-up"
                   className="inline-flex justify-center items-center px-6 py-3 rounded-lg bg-[#FFBE1A] text-black font-medium hover:bg-[#FFBE1A]/90 transition-colors"
                 >
                   Get Started
