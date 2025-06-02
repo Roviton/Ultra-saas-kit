@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { useUser } from '@clerk/nextjs'
+import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
   HomeIcon,
@@ -35,25 +33,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { isLoading, isAuthenticated, userRole } = useAuth()
-  const { user } = useUser()
-  const router = useRouter()
   const pathname = usePathname()
-  
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace('/auth/sign-in')
-    }
-  }, [isLoading, isAuthenticated, router])
-
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-black">
@@ -83,24 +63,7 @@ export default function DashboardLayout({
               )
             })}
             
-            {/* Admin-only navigation item */}
-            {userRole === 'admin' && (
-              <Link
-                href="/dashboard/admin"
-                className={`
-                  flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors mt-4
-                  ${pathname === '/dashboard/admin' 
-                    ? 'bg-red-900/30 text-red-400' 
-                    : 'text-red-400/70 hover:bg-red-900/20 hover:text-red-400'
-                  }
-                `}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Admin Dashboard
-              </Link>
-            )}
+            {/* Admin navigation temporarily removed until authentication is set up */}
           </nav>
         </div>
 

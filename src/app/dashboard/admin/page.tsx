@@ -1,76 +1,39 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { UserRole } from '@/lib/roles'
-import { createSupabaseBrowserClient, UserProfile } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AlertCircle, UserPlus, Building, Users } from 'lucide-react'
 
+// Mock data for placeholder UI until authentication is implemented
+type MockUser = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  organizationId?: string;
+};
+
 export default function AdminDashboardPage() {
-  const { user, profile, isLoading, isAdmin } = useAuth()
   const router = useRouter()
-  const [users, setUsers] = useState<UserProfile[]>([])
-  const [organizations, setOrganizations] = useState<any[]>([])
-  const [isLoadingData, setIsLoadingData] = useState(true)
-
-  useEffect(() => {
-    // Redirect non-admin users who somehow reached this page
-    if (!isLoading && !isAdmin) {
-      router.push('/dashboard/unauthorized')
-    }
-  }, [isLoading, isAdmin, router])
-
-  useEffect(() => {
-    // Only run this effect if user is admin and not loading
-    if (isLoading || !isAdmin) return;
-    
-    const fetchAdminData = async () => {
-      setIsLoadingData(true)
-      try {
-        const supabase = createSupabaseBrowserClient()
-        
-        // Fetch all users
-        const { data: usersData, error: usersError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false })
-        
-        if (usersError) throw usersError
-        setUsers(usersData || [])
-        
-        // Fetch all organizations
-        const { data: orgsData, error: orgsError } = await supabase
-          .from('organizations')
-          .select('*')
-          .order('created_at', { ascending: false })
-        
-        if (orgsError) throw orgsError
-        setOrganizations(orgsData || [])
-      } catch (error) {
-        console.error('Error fetching admin data:', error)
-      } finally {
-        setIsLoadingData(false)
-      }
-    }
-
-    fetchAdminData()
-  }, [isAdmin])
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  if (!isAdmin) {
-    return null // We'll redirect in the useEffect
-  }
+  const [isLoadingData, setIsLoadingData] = useState(false)
+  
+  // Mock data for UI demonstration until authentication is implemented
+  const users: MockUser[] = [
+    { id: '1', firstName: 'Admin', lastName: 'User', email: 'admin@example.com', role: 'admin' },
+    { id: '2', firstName: 'Dispatcher', lastName: 'User', email: 'dispatcher@example.com', role: 'dispatcher', organizationId: 'org-1' },
+    { id: '3', firstName: 'Driver', lastName: 'User', email: 'driver@example.com', role: 'driver', organizationId: 'org-1' },
+    { id: '4', firstName: 'Customer', lastName: 'User', email: 'customer@example.com', role: 'customer', organizationId: 'org-2' },
+    { id: '5', firstName: 'New', lastName: 'User', email: 'new@example.com', role: 'user' }
+  ]
+  
+  const organizations = [
+    { id: 'org-1', name: 'Freight Company A' },
+    { id: 'org-2', name: 'Logistics Inc.' }
+  ]
 
   return (
     <div className="container mx-auto p-6 space-y-6">
