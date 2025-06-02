@@ -1,30 +1,48 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+
+/**
+ * This API route has been modified to use mock data instead of Supabase authentication.
+ * It will be updated when Clerk authentication is implemented.
+ */
+
+// Mock data for update summaries
+const mockSummaries = [
+  {
+    id: '1',
+    summary: 'All drivers completed their routes on time. Average delivery time was 35 minutes.',
+    time_period_start: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+    time_period_end: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString()
+  },
+  {
+    id: '2',
+    summary: 'Three drivers reported traffic delays. Customer satisfaction remained at 94%.',
+    time_period_start: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+    time_period_end: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString()
+  },
+  {
+    id: '3',
+    summary: 'New route optimization resulted in 15% faster deliveries this week.',
+    time_period_start: new Date(Date.now() - 1000 * 60 * 60 * 24 * 21).toISOString(),
+    time_period_end: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 13).toISOString()
+  }
+];
 
 export async function GET(req: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
   const { searchParams } = new URL(req.url)
   const limit = Number(searchParams.get('limit') || 20)
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // Mock user authentication
+  // This will be replaced with actual Clerk authentication when implemented
+  const mockUser = {
+    id: 'mock-user-id',
+    email: 'user@example.com'
   }
 
-  const { data, error } = await supabase
-    .from('update_summaries')
-    .select('*')
-    .order('time_period_end', { ascending: false })
-    .limit(limit)
-
-  if (error) {
-    console.error(error)
-    return NextResponse.json({ error: 'Error fetching summaries' }, { status: 500 })
-  }
+  // Filter mock data based on query parameters and apply limit
+  const data = mockSummaries.slice(0, limit)
 
   return NextResponse.json({ data })
 }

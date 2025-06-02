@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import Stripe from 'stripe'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-})
+/**
+ * This API route has been modified to use mock data instead of Supabase authentication.
+ * It will be updated when Clerk authentication is implemented.
+ */
+
+// Initialize Stripe conditionally to avoid errors if key is not set
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-11-20.acacia',
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -19,55 +26,30 @@ export async function POST(req: Request) {
       )
     }
 
-    // Initialize Supabase client with cookies
-    const supabase = createRouteHandlerClient({ cookies })
-
-    // Get the user from the session
-    const { data, error: sessionError } = await supabase.auth.getSession()
-    
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      return NextResponse.json(
-        { error: 'Authentication error' },
-        { status: 401 }
-      )
+    // Mock user authentication
+    // This will be replaced with actual Clerk authentication when implemented
+    const mockUser = {
+      id: 'mock-user-id',
+      email: 'user@example.com'
     }
 
-    const session = data.session
-    if (!session?.user) {
-      console.error('No session or user found')
-      return NextResponse.json(
-        { error: 'Please log in to continue' },
-        { status: 401 }
-      )
+    const userId = mockUser.id
+    const customerEmail = mockUser.email
+
+    // Mock customer data
+    const mockCustomer = {
+      id: 'cus_mock123',
+      stripe_customer_id: 'cus_stripe123'
     }
 
-    const userId = session.user.id
-    const customerEmail = session.user.email
+    // Use mock customer ID
+    const customerId = mockCustomer.stripe_customer_id
 
-    // Create or retrieve Stripe customer
-    const { data: existingCustomer } = await supabase
-      .from('customers')
-      .select('stripe_customer_id')
-      .eq('user_id', userId)
-      .single()
-
-    let customerId: string
-
-    if (existingCustomer?.stripe_customer_id) {
-      customerId = existingCustomer.stripe_customer_id
-    } else {
-      const customer = await stripe.customers.create({
-        email: customerEmail,
-        metadata: {
-          userId,
-        },
-      })
-      customerId = customer.id
-
-      await supabase.from('customers').insert({
-        user_id: userId,
-        stripe_customer_id: customerId,
+    // Skip actual Stripe API calls if Stripe is not configured
+    if (!stripe) {
+      console.log('Stripe is not configured. Returning mock checkout URL.')
+      return NextResponse.json({
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?success=true&mock=true`
       })
     }
 

@@ -1,7 +1,10 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+
+/**
+ * This API route has been modified to use mock authentication instead of Supabase.
+ * It will be updated when Clerk authentication is implemented.
+ */
 
 // Make OpenAI initialization conditional
 let openai: OpenAI | null = null;
@@ -20,38 +23,19 @@ export async function POST(req: Request) {
         { status: 503 }
       )
     }
-    const supabase = createRouteHandlerClient({ cookies })
+    
     const { messages } = await req.json()
-
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    
+    // Mock authentication and credits check
+    // This will be replaced with actual Clerk authentication when implemented
+    const mockUser = {
+      id: 'mock-user-id',
+      email: 'user@example.com'
     }
-
-    // Check if user has enough credits
-    const { data: credits, error: creditsError } = await supabase
-      .from('user_credits')
-      .select('credits')
-      .eq('user_id', user.id)
-      .single()
-
-    if (creditsError) {
-      console.error('Error fetching credits:', creditsError)
-      return NextResponse.json(
-        { error: 'Error checking credits' },
-        { status: 500 }
-      )
-    }
-
-    if (!credits || credits.credits < 1) {
-      return NextResponse.json(
-        { error: 'Insufficient credits' },
-        { status: 402 }
-      )
+    
+    // Mock credits - always have enough for now
+    const mockCredits = {
+      credits: 100
     }
 
     // Make request to OpenAI
@@ -62,19 +46,10 @@ export async function POST(req: Request) {
       max_tokens: 1000,
     })
 
-    // Deduct credits
-    const { error: updateError } = await supabase
-      .from('user_credits')
-      .update({
-        credits: credits.credits - 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', user.id)
-
-    if (updateError) {
-      console.error('Error updating credits:', updateError)
-      // Continue anyway since we've already made the API call
-    }
+    // Mock credit deduction
+    // This will be replaced with actual credit management when authentication is implemented
+    console.log('Mock credit deduction for user:', mockUser.id)
+    const updatedCredits = mockCredits.credits - 1
 
     return NextResponse.json(completion.choices[0]?.message ?? { content: "No response generated" })
   } catch (error) {

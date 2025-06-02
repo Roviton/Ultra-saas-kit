@@ -4,10 +4,16 @@ import { CheckIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+/**
+ * This component has been modified to remove Supabase authentication code.
+ * It will be updated when Clerk authentication is implemented.
+ */
+
+// Initialize Stripe conditionally to avoid errors if key is not set
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null
 
 interface PricingCardProps {
   title: string
@@ -31,17 +37,18 @@ const PricingCard = ({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  
+  // Mock user authentication - will be replaced with Clerk authentication
+  const mockUserAuthenticated = true
 
   const handleSubscribe = async () => {
     try {
       setIsLoading(true)
       setError(null)
 
-      // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session) {
+      // Check if user is authenticated - using mock for now
+      // This will be replaced with actual Clerk authentication when implemented
+      if (!mockUserAuthenticated) {
         // If not authenticated, redirect to login with return URL
         const returnUrl = '/dashboard/billing'
         router.push(`/auth?returnUrl=${encodeURIComponent(returnUrl)}`)

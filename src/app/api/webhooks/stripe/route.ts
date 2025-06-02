@@ -1,16 +1,30 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-})
+/**
+ * This API route has been modified to remove Supabase authentication code.
+ * It will be updated when Clerk authentication is implemented.
+ */
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+// Initialize Stripe conditionally to avoid errors if key is not set
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-11-20.acacia',
+  });
+}
+
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
 export async function POST(req: Request) {
   try {
+    // If Stripe is not configured, just return success
+    if (!stripe || !webhookSecret) {
+      console.log('Stripe is not configured. Skipping webhook processing.');
+      return NextResponse.json({ received: true });
+    }
+    
     const body = await req.text()
     const headersList = await headers()
     const signature = headersList.get('stripe-signature')
@@ -22,134 +36,76 @@ export async function POST(req: Request) {
       )
     }
 
-    const event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSecret
-    )
+    // Verify the webhook signature
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        webhookSecret
+      )
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error(`Webhook signature verification failed: ${errorMessage}`);
+      return NextResponse.json(
+        { error: `Webhook signature verification failed: ${errorMessage}` },
+        { status: 400 }
+      );
+    }
 
-    const supabase = createClientComponentClient()
-
+    // Mock database operations - log events instead of storing in database
+    // This will be replaced with actual Clerk authentication and database operations when implemented
+    console.log(`Received Stripe webhook event: ${event.type}`);
+    
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log(`Checkout session completed for user: ${session.metadata?.userId}`);
+        
+        // In a real implementation, we would store the subscription in the database
+        if (session.subscription) {
+          console.log(`Subscription created: ${session.subscription}`);
+        }
+        break;
+      }
 
-        // Get the subscription
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        )
-
-        // Add subscription to database
-        await supabase.from('customer_subscriptions').insert({
-          user_id: session.metadata?.userId ?? '',
-          subscription_id: subscription.id,
-          status: subscription.status,
-          price_id: subscription.items.data[0]?.price?.id ?? '',
-          quantity: subscription.items.data[0]?.quantity ?? 1,
-          cancel_at_period_end: subscription.cancel_at_period_end,
-          cancel_at: subscription.cancel_at
-            ? new Date(subscription.cancel_at * 1000).toISOString()
-            : null,
-          canceled_at: subscription.canceled_at
-            ? new Date(subscription.canceled_at * 1000).toISOString()
-            : null,
-          current_period_start: new Date(
-            subscription.current_period_start * 1000
-          ).toISOString(),
-          current_period_end: new Date(
-            subscription.current_period_end * 1000
-          ).toISOString(),
-          created: new Date(subscription.created * 1000).toISOString(),
-          ended_at: subscription.ended_at
-            ? new Date(subscription.ended_at * 1000).toISOString()
-            : null,
-          trial_start: subscription.trial_start
-            ? new Date(subscription.trial_start * 1000).toISOString()
-            : null,
-          trial_end: subscription.trial_end
-            ? new Date(subscription.trial_end * 1000).toISOString()
-            : null,
-        })
-
-        break
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log(`Invoice payment succeeded: ${invoice.id}`);
+        
+        // In a real implementation, we would update the subscription in the database
+        if (invoice.subscription) {
+          console.log(`Subscription updated: ${invoice.subscription}`);
+        }
+        break;
       }
 
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription
-
-        // Update subscription in database
-        await supabase
-          .from('customer_subscriptions')
-          .update({
-            status: subscription.status,
-            cancel_at_period_end: subscription.cancel_at_period_end,
-            cancel_at: subscription.cancel_at
-              ? new Date(subscription.cancel_at * 1000).toISOString()
-              : null,
-            canceled_at: subscription.canceled_at
-              ? new Date(subscription.canceled_at * 1000).toISOString()
-              : null,
-            current_period_start: new Date(
-              subscription.current_period_start * 1000
-            ).toISOString(),
-            current_period_end: new Date(
-              subscription.current_period_end * 1000
-            ).toISOString(),
-            ended_at: subscription.ended_at
-              ? new Date(subscription.ended_at * 1000).toISOString()
-              : null,
-            trial_start: subscription.trial_start
-              ? new Date(subscription.trial_start * 1000).toISOString()
-              : null,
-            trial_end: subscription.trial_end
-              ? new Date(subscription.trial_end * 1000).toISOString()
-              : null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('subscription_id', subscription.id)
-
-        break
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log(`Subscription updated: ${subscription.id}`);
+        console.log(`New status: ${subscription.status}`);
+        console.log(`Cancel at period end: ${subscription.cancel_at_period_end}`);
+        break;
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription
-
-        // Update subscription in database
-        await supabase
-          .from('customer_subscriptions')
-          .update({
-            status: subscription.status,
-            cancel_at_period_end: subscription.cancel_at_period_end,
-            cancel_at: subscription.cancel_at
-              ? new Date(subscription.cancel_at * 1000).toISOString()
-              : null,
-            canceled_at: subscription.canceled_at
-              ? new Date(subscription.canceled_at * 1000).toISOString()
-              : null,
-            current_period_start: new Date(
-              subscription.current_period_start * 1000
-            ).toISOString(),
-            current_period_end: new Date(
-              subscription.current_period_end * 1000
-            ).toISOString(),
-            ended_at: subscription.ended_at
-              ? new Date(subscription.ended_at * 1000).toISOString()
-              : null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('subscription_id', subscription.id)
-
-        break
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log(`Subscription deleted: ${subscription.id}`);
+        console.log(`Final status: ${subscription.status}`);
+        break;
       }
+
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
     }
 
-    return NextResponse.json({ received: true })
-  } catch (err) {
-    console.error('Error processing webhook:', err)
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error('Error in Stripe webhook:', error);
     return NextResponse.json(
       { error: 'Error processing webhook' },
-      { status: 400 }
-    )
+      { status: 500 }
+    );
   }
-} 
+}

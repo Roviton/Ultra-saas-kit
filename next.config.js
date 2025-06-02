@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   env: {
-    // Database Connection
-    POSTGRES_URL: process.env.POSTGRES_URL,
-    
     // Application Configuration
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     

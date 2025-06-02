@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { loadStripe } from '@stripe/stripe-js'
 import {
   CreditCardIcon,
@@ -10,8 +9,15 @@ import {
   CheckIcon,
 } from '@heroicons/react/24/outline'
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+/**
+ * This component has been modified to remove Supabase authentication code.
+ * It will be updated when Clerk authentication is implemented.
+ */
+
+// Initialize Stripe conditionally to avoid errors if key is not set
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null
 
 // Define pricing plans
 const pricingPlans = [
@@ -82,67 +88,83 @@ export default function BillingPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
-  const supabase = createClientComponentClient()
   const router = useRouter()
 
-  const checkUser = useCallback(async () => {
+  // Mock user data - will be replaced with Clerk authentication
+  const mockUser = {
+    id: 'mock-user-id',
+    email: 'user@example.com'
+  }
+
+  const loadMockData = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      // Simulate authentication check
+      // This will be replaced with actual Clerk authentication when implemented
+      const isAuthenticated = true
+      
+      if (!isAuthenticated) {
         router.push('/auth')
         return
       }
-      setUser(user)
-      await fetchBillingData(user.id)
+      
+      setUser(mockUser)
+      await fetchMockBillingData(mockUser.id)
     } catch (error) {
-      console.error('Error checking user:', error)
-      setError('Authentication error occurred')
+      console.error('Error loading mock data:', error)
+      setError('Error loading billing data')
     } finally {
       setIsLoading(false)
     }
-  }, [supabase.auth, router])
+  }, [router])
 
   useEffect(() => {
-    checkUser()
-  }, [checkUser])
+    loadMockData()
+  }, [loadMockData])
 
-  async function fetchBillingData(userId: string) {
+  async function fetchMockBillingData(userId: string) {
     try {
-      // Fetch current subscription
-      const { data: subscription, error: subError } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .maybeSingle()
-
-      if (subError) {
-        console.error('Error fetching subscription:', subError)
-        // Don't set error for no subscription found
-        if (subError.code !== 'PGRST116') {
-          setError('Error loading subscription data')
-        }
-      } else if (subscription) {
-        setCurrentSubscription(subscription)
+      // Mock subscription data
+      const mockSubscription = {
+        id: 'sub_mock123',
+        plan_id: 'price_1RTg81FRRB3Q64TIs07aFfLI', // Pro plan
+        status: 'active',
+        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        cancel_at_period_end: false
       }
+      
+      // Set the mock subscription
+      setCurrentSubscription(mockSubscription)
 
-      // Fetch billing history
-      const { data: history, error: historyError } = await supabase
-        .from('billing_history')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      if (historyError) {
-        console.error('Error fetching billing history:', historyError)
-        // Don't set error for no history found
-        if (historyError.code !== 'PGRST116') {
-          setError('Error loading billing history')
+      // Mock billing history data
+      const mockBillingHistory = [
+        {
+          id: 'in_mock1',
+          amount: 24900,
+          currency: 'usd',
+          status: 'paid',
+          invoice_url: 'https://example.com/invoice/1',
+          created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'in_mock2',
+          amount: 24900,
+          currency: 'usd',
+          status: 'paid',
+          invoice_url: 'https://example.com/invoice/2',
+          created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'in_mock3',
+          amount: 24900,
+          currency: 'usd',
+          status: 'paid',
+          invoice_url: 'https://example.com/invoice/3',
+          created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
         }
-      } else {
-        setBillingHistory(history || [])
-      }
+      ]
+      
+      // Set the mock billing history
+      setBillingHistory(mockBillingHistory)
     } catch (err) {
       console.error('Error fetching billing data:', err)
       setError('Failed to load billing information')
@@ -201,7 +223,7 @@ export default function BillingPage() {
       if (!response.ok) throw new Error(result.error)
 
       // Refresh billing data
-      await fetchBillingData(user.id)
+      await fetchMockBillingData(user.id)
     } catch (err) {
       console.error('Error:', err)
       setError(err instanceof Error ? err.message : 'Failed to cancel subscription')
