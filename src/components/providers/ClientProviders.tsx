@@ -3,33 +3,40 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 
+// This component ensures Clerk is only initialized on the client side
+// to prevent prerendering errors during build
 export default function ClientProviders({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Safely access environment variables on the client side
-  const [publishableKey, setPublishableKey] = useState<string | undefined>(
-    undefined
-  );
-
+  // Track if we're on the client side
+  const [isMounted, setIsMounted] = useState(false);
+  
   useEffect(() => {
-    // Only set the publishable key on the client side
-    const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-    setPublishableKey(key);
+    setIsMounted(true);
     
-    // Debug key for development purposes
+    // Debug environment variables
+    const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
     if (key) {
-      console.log('Using publishable key:', key.substring(0, 10) + '...');
+      // Only log in development to avoid exposing key in production logs
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Using publishable key:', key.substring(0, 10) + '...');
+      }
     } else {
       console.error('Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY');
     }
   }, []);
 
-  // Only render children when publishable key is available
-  if (!publishableKey && typeof window !== 'undefined') {
-    return <div className="p-4">Loading authentication...</div>;
+  // Show a simple loading state until client-side hydration completes
+  if (!isMounted) {
+    return <div className="p-4">Loading application...</div>;
   }
 
-  return <ClerkProvider>{children}</ClerkProvider>;
+  // Only render ClerkProvider on the client side after hydration
+  return (
+    <ClerkProvider>
+      {children}
+    </ClerkProvider>
+  );
 }

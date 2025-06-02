@@ -1,4 +1,8 @@
-'use client';
+// This is a static page that doesn't use Clerk authentication
+// to prevent prerendering errors
+
+export const dynamic = 'force-static';
+export const fetchCache = 'only-no-store';
 
 import Link from 'next/link';
 

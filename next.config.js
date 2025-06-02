@@ -6,6 +6,9 @@ if (!clerkPublishableKey) {
   console.warn('Warning: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing');
 }
 
+// Force correct publishable key for Clerk - this is the key from .env.production
+process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsudWx0cmEyMS5jb20k';
+
 const nextConfig = {
   reactStrictMode: true,
   env: {
@@ -41,17 +44,12 @@ const nextConfig = {
   
   // Configuration for handling Clerk authentication properly
   experimental: {
-    // Disable suspense bailout to prevent hydration issues
-    missingSuspenseWithCSRBailout: false
+    // Enable typed routes for better type safety
+    typedRoutes: true
   },
   
-  // Explicitly define which pages should not be statically generated
-  // This prevents prerendering errors with Clerk authentication
-  unstable_excludeFiles: [
-    '**/_not-found.js',  // Exclude the not-found page from static generation
-    '**/auth/**/*.js',   // Exclude auth pages from static generation
-    '**/dashboard/**/*.js' // Exclude dashboard pages from static generation
-  ]
+  // Disable static generation for specific paths
+  // This is done by configuring the page options in the app directory instead
 }
 
 module.exports = nextConfig
