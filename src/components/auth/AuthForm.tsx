@@ -72,7 +72,7 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
             routing="path"
             signInUrl="/auth/sign-in"
             redirectUrl="/dashboard"
-            afterSignUpUrl="/dashboard"
+            forceRedirectUrl="/dashboard"
             unsafeMetadata={{
               role: "dispatcher"
             }}
@@ -99,6 +99,7 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
             routing="path"
             signUpUrl="/auth/sign-up"
             redirectUrl="/dashboard"
+            forceRedirectUrl="/dashboard"
             appearance={{
               elements: {
                 formButtonPrimary: 
