@@ -1,114 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { UserRole } from '@/lib/roles'
+import { useEffect, useState } from 'react'
+import { SignIn, SignUp } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { useSignIn, useSignUp } from '@clerk/nextjs'
 
 interface AuthFormProps {
   view?: string
 }
 
+/**
+ * AuthForm component using Clerk's built-in components
+ * This implementation properly handles CAPTCHA and other security features
+ * required in production environments
+ */
 export default function AuthForm({ view: initialView }: AuthFormProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [organizationName, setOrganizationName] = useState('')
-  const [role, setRole] = useState<UserRole>('dispatcher')
   const [isSignUp, setIsSignUp] = useState(initialView === 'sign-up')
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const returnUrl = searchParams?.get('returnUrl') || '/'
-  const { isLoaded: isSignInLoaded, signIn: clerkSignIn } = useSignIn()
-  const { isLoaded: isSignUpLoaded, signUp: clerkSignUp } = useSignUp()
 
   useEffect(() => {
     setIsSignUp(initialView === 'sign-up')
   }, [initialView])
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
-    if (!isSignInLoaded) {
-      setError('Authentication system is not ready yet. Please try again.')
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      const result = await clerkSignIn.create({
-        identifier: email,
-        password,
-      })
-
-      if (result.status === 'complete') {
-        // Redirect the user to the returnUrl or dashboard
-        router.push(returnUrl)
-      } else {
-        // This is a rare edge case
-        setError('Something went wrong during sign in. Please try again.')
-      }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'An error occurred during sign in')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setSuccessMessage(null)
-
-    // Basic validation
-    if (isSignUp && role === 'admin' && !organizationName) {
-      setError('Organization name is required for administrators')
-      setIsLoading(false)
-      return
-    }
-
-    if (!isSignUpLoaded) {
-      setError('Authentication system is not ready yet. Please try again.')
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      const result = await clerkSignUp.create({
-        emailAddress: email,
-        password,
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        unsafeMetadata: {
-          role: role,
-          organizationName: organizationName || undefined
-        }
-      })
-
-      if (result.status === 'complete') {
-        // If email verification is not required, redirect to dashboard
-        router.push('/dashboard')
-      } else {
-        // For all other statuses (needs_email_verification, etc.)
-        setSuccessMessage('Please check your email for the verification link and complete the signup process.')
-      }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'An error occurred during sign up')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <div className="flex flex-col items-center justify-center flex-1 w-full px-4">
@@ -133,112 +48,53 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
           </Alert>
         )}
 
-        <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
-          <div className="space-y-4">
-            <div>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent"
-                placeholder="Email address"
-              />
-            </div>
-            <div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent"
-                placeholder="Password"
-              />
-            </div>
-            
-            {isSignUp && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <input
-                      id="first-name"
-                      name="firstName"
-                      type="text"
-                      autoComplete="given-name"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent"
-                      placeholder="First name"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      id="last-name"
-                      name="lastName"
-                      type="text"
-                      autoComplete="family-name"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent"
-                      placeholder="Last name"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <select
-                    id="role"
-                    name="role"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent"
-                  >
-                    <option value="dispatcher">Dispatcher</option>
-                    <option value="admin">Administrator</option>
-                  </select>
-                </div>
-                
-                {role === 'admin' && (
-                  <div>
-                    <input
-                      id="organization-name"
-                      name="organizationName"
-                      type="text"
-                      required
-                      value={organizationName}
-                      onChange={(e) => setOrganizationName(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent"
-                      placeholder="Organization name"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-2 px-4 bg-[#FFBE1A] text-black rounded-lg font-medium hover:bg-[#FFBE1A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFBE1A] disabled:opacity-50 transition-colors"
-          >
-            {isLoading ? 'Loading...' : (isSignUp ? 'Sign up' : 'Sign in')}
-          </button>
-
-          <div className="text-center">
-            <Link
-              href={isSignUp ? '/auth' : '/auth?view=sign-up'}
-              className="text-[#FFBE1A] hover:text-[#FFBE1A]/80 text-sm font-medium"
-            >
-              {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
-            </Link>
-          </div>
-        </form>
+        {isSignUp ? (
+          <SignUp
+            path="/auth/sign-up"
+            routing="path"
+            signInUrl="/auth/sign-in"
+            redirectUrl="/dashboard"
+            appearance={{
+              elements: {
+                formButtonPrimary: 
+                  "w-full py-2 px-4 bg-[#FFBE1A] text-black rounded-lg font-medium hover:bg-[#FFBE1A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFBE1A] disabled:opacity-50 transition-colors",
+                card: "bg-transparent shadow-none",
+                headerTitle: "hidden",
+                headerSubtitle: "hidden",
+                socialButtonsBlockButton: 
+                  "bg-[#0A0A0A] border border-white/10 text-white hover:bg-[#1A1A1A]",
+                formFieldInput: 
+                  "w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent",
+                formFieldLabel: "text-white",
+                footerActionText: "text-white",
+                footerActionLink: "text-[#FFBE1A] hover:text-[#FFBE1A]/80"
+              }
+            }}
+          />
+        ) : (
+          <SignIn
+            path="/auth/sign-in"
+            routing="path"
+            signUpUrl="/auth/sign-up"
+            redirectUrl="/dashboard"
+            appearance={{
+              elements: {
+                formButtonPrimary: 
+                  "w-full py-2 px-4 bg-[#FFBE1A] text-black rounded-lg font-medium hover:bg-[#FFBE1A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFBE1A] disabled:opacity-50 transition-colors",
+                card: "bg-transparent shadow-none",
+                headerTitle: "hidden",
+                headerSubtitle: "hidden",
+                socialButtonsBlockButton: 
+                  "bg-[#0A0A0A] border border-white/10 text-white hover:bg-[#1A1A1A]",
+                formFieldInput: 
+                  "w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent",
+                formFieldLabel: "text-white",
+                footerActionText: "text-white",
+                footerActionLink: "text-[#FFBE1A] hover:text-[#FFBE1A]/80"
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   )
