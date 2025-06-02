@@ -67,17 +67,38 @@ jest.mock('@/lib/supabase/client', () => ({
   UserProfile: {}
 }))
 
-jest.mock('@/lib/supabase/session-manager', () => {
-  class MockSessionManager {
-    async initialize() { return null }
-    setEventHandlers() { return this }
-    async refreshSession() { return null }
-    async getSession() { return null }
-    async signOut() { /* noop */ }
-    cleanup() { /* noop */ }
-    onAuthStateChange(_cb: any) { return { unsubscribe: jest.fn() } }
+// Mock Clerk authentication
+jest.mock('@clerk/nextjs', () => {
+  return {
+    auth: jest.fn().mockReturnValue({
+      userId: 'test-user-id',
+      sessionId: 'test-session-id',
+      getToken: jest.fn().mockResolvedValue('test-token')
+    }),
+    currentUser: jest.fn().mockResolvedValue({
+      id: 'test-user-id',
+      firstName: 'Test',
+      lastName: 'User',
+      emailAddresses: [{ emailAddress: 'test@example.com' }],
+      publicMetadata: { role: 'user' }
+    }),
+    clerkClient: {
+      users: {
+        getUser: jest.fn().mockResolvedValue({
+          id: 'test-user-id',
+          firstName: 'Test',
+          lastName: 'User',
+          emailAddresses: [{ emailAddress: 'test@example.com' }],
+          publicMetadata: { role: 'user' }
+        })
+      }
+    },
+    getAuth: jest.fn().mockReturnValue({
+      userId: 'test-user-id',
+      sessionId: 'test-session-id',
+      getToken: jest.fn().mockResolvedValue('test-token')
+    })
   }
-  return { sessionManager: new MockSessionManager() }
 })
 
 // Mock URL constructor

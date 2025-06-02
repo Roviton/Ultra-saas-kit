@@ -2,12 +2,23 @@ import 'whatwg-fetch'
 import { GET as getUpdates, POST as postUpdate } from '../../app/api/driver-updates/route'
 import { NextResponse } from 'next/server'
 
-// Minimal mocks for Supabase client
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: () => ({
-    auth: {
-      getUser: () => ({ data: { user: { id: 'user-id' } }, error: null }),
-    },
+// Minimal mocks for Clerk auth and Supabase database
+jest.mock('@clerk/nextjs', () => ({
+  auth: jest.fn().mockReturnValue({
+    userId: 'test-user-id',
+    sessionId: 'test-session-id',
+    getToken: jest.fn().mockResolvedValue('test-token')
+  }),
+  getAuth: jest.fn().mockReturnValue({
+    userId: 'test-user-id',
+    sessionId: 'test-session-id',
+    getToken: jest.fn().mockResolvedValue('test-token')
+  })
+}))
+
+// Mock for Supabase database client (not auth)
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: () => ({
     from: () => ({
       select: () => ({ order: () => ({ range: () => ({ data: [], error: null }) }) }),
       insert: () => ({ error: null }),

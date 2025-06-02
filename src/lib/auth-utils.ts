@@ -37,6 +37,25 @@ export async function getUserRole(): Promise<UserRole | null> {
 }
 
 /**
+ * Check if a user has the required role to access a resource
+ * @param userRole The user's role
+ * @param requiredRole The required role to access the resource
+ * @returns True if the user has the required role, false otherwise
+ */
+export function hasRequiredRole(userRole: UserRole | null, requiredRole: UserRole): boolean {
+  if (!userRole) return false;
+  
+  // Admin has access to everything
+  if (userRole === 'admin') return true;
+  
+  // Dispatcher has access to dispatcher resources
+  if (userRole === 'dispatcher' && requiredRole === 'dispatcher') return true;
+  
+  // Direct role match
+  return userRole === requiredRole;
+}
+
+/**
  * Check if the current user is an admin
  * @returns True if the user is an admin, false otherwise
  */

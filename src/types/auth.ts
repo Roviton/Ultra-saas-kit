@@ -3,7 +3,7 @@
  */
 
 // User roles in the application
-export type UserRole = 'admin' | 'dispatcher' | 'guest';
+export type UserRole = 'admin' | 'dispatcher' | 'user' | 'guest';
 
 // User metadata structure
 export interface UserMetadata {
