@@ -17,12 +17,11 @@ interface ProvidersProps {
  * Updated to use Clerk.com for authentication instead of Supabase Auth
  */
 export function AuthProviders({ children }: ProvidersProps) {
+  // Debug output to help troubleshoot Clerk initialization
+  console.log('ClerkProvider initializing with key:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  
   return (
     <ClerkProvider
-      // Explicitly set routing strategy to path-based for production reliability
-      routerPush={(to) => window.location.href = to}
-      routerReplace={(to) => window.location.href = to}
-      // Use the environment variable for API version
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={{
         elements: {

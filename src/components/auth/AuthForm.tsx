@@ -42,6 +42,13 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
       window.removeEventListener('error', handleClerkError)
     }
   }, [])
+  
+  // Debug output to help troubleshoot rendering issues
+  useEffect(() => {
+    console.log('AuthForm rendering with view:', initialView)
+    console.log('isSignUp:', isSignUp)
+    console.log('Clerk publishable key:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
+  }, [initialView, isSignUp])
 
   return (
     <div className="flex flex-col items-center justify-center flex-1 w-full px-4">
@@ -68,11 +75,8 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
 
         {isSignUp ? (
           <SignUp
-            path="/auth/sign-up"
-            routing="path"
-            signInUrl="/auth/sign-in"
+            signInUrl="/auth?view=sign-in"
             redirectUrl="/dashboard"
-            forceRedirectUrl="/dashboard"
             unsafeMetadata={{
               role: "dispatcher"
             }}
@@ -95,11 +99,8 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
           />
         ) : (
           <SignIn
-            path="/auth/sign-in"
-            routing="path"
-            signUpUrl="/auth/sign-up"
+            signUpUrl="/auth?view=sign-up"
             redirectUrl="/dashboard"
-            forceRedirectUrl="/dashboard"
             appearance={{
               elements: {
                 formButtonPrimary: 
