@@ -19,6 +19,9 @@ interface ProvidersProps {
 export function AuthProviders({ children }: ProvidersProps) {
   return (
     <ClerkProvider
+      // Explicitly set routing strategy to path-based
+      routerPush={(to) => window.location.href = to}
+      routerReplace={(to) => window.location.href = to}
       appearance={{
         elements: {
           formButtonPrimary: 
