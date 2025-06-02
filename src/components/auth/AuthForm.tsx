@@ -5,6 +5,7 @@ import { SignIn, SignUp } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { UserRole } from '@/lib/roles'
 
 interface AuthFormProps {
   view?: string
@@ -24,6 +25,23 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
   useEffect(() => {
     setIsSignUp(initialView === 'sign-up')
   }, [initialView])
+  
+  // Handle errors at the component level
+  useEffect(() => {
+    // Listen for Clerk-related errors
+    const handleClerkError = (e: Event) => {
+      if (e instanceof ErrorEvent) {
+        console.error('Authentication error:', e.error || e.message)
+        setError(e.message || 'An error occurred during authentication')
+      }
+    }
+    
+    window.addEventListener('error', handleClerkError)
+    
+    return () => {
+      window.removeEventListener('error', handleClerkError)
+    }
+  }, [])
 
   return (
     <div className="flex flex-col items-center justify-center flex-1 w-full px-4">
@@ -54,6 +72,10 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
             routing="path"
             signInUrl="/auth/sign-in"
             redirectUrl="/dashboard"
+            afterSignUpUrl="/dashboard"
+            unsafeMetadata={{
+              role: "dispatcher"
+            }}
             appearance={{
               elements: {
                 formButtonPrimary: 
