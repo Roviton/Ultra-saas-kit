@@ -1,7 +1,7 @@
 // Import necessary types from Next.js
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { getAuth, withClerkMiddleware } from '@clerk/nextjs/server';
 import { UserRole } from '@/types/auth';
 
 // For debugging middleware issues
@@ -96,7 +96,14 @@ function getRequiredRoleForRoute(pathname: string): UserRole | null {
 /**
  * Middleware function to handle authentication and role-based access control
  */
-export function middleware(request: NextRequest) {
+export default withClerkMiddleware((request: NextRequest) => {
+  return middlewareHandler(request);
+});
+
+/**
+ * Main middleware handler with our custom logic
+ */
+function middlewareHandler(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;
     
