@@ -1,20 +1,19 @@
-'use client'
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
-import dynamic from 'next/dynamic'
-
-// Use dynamic import to load the ProfileSettings component
-// The 'use client' directive above ensures this is a Client Component
-const ProfileSettings = dynamic(
-  () => import('@/components/profile/ProfileSettings'),
-  { 
-    loading: () => (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-)
+import { Suspense } from 'react';
+import ProfileClient from './client';
 
 export default function ProfilePage() {
-  return <ProfileSettings />
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-pulse">
+          <p className="text-center text-gray-500">Loading profile...</p>
+        </div>
+      </div>
+    }>
+      <ProfileClient />
+    </Suspense>
+  );
 }
