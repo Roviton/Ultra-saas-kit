@@ -7,7 +7,14 @@ import { useUser, useClerk } from '@clerk/clerk-react'
 import { getUserRole } from '@/lib/client-auth-utils'
 import { UserRole } from '@/types/auth'
 
-export default function ProfileSettings() {
+// This ensures the page is only rendered client-side
+const ProfilePage = () => {
+  return <ProfileSettings />
+}
+
+export default ProfilePage
+
+function ProfileSettings() {
   const router = useRouter();
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
