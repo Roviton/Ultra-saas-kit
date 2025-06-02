@@ -20,8 +20,9 @@ interface ProvidersProps {
 export function AuthProviders({ children }: ProvidersProps) {
   // Debug output to help troubleshoot Clerk initialization
   console.log('ClerkProvider initializing with key:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-  console.log('Clerk JS enabled:', process.env.NEXT_PUBLIC_CLERK_JS);
+  console.log('Clerk JS enabled:', process.env.NEXT_PUBLIC_CLERK_JS_ENABLED);
   console.log('Clerk API version:', process.env.NEXT_PUBLIC_CLERK_API_VERSION);
+  console.log('Clerk Frontend API:', process.env.NEXT_PUBLIC_CLERK_FRONTEND_API);
   
   // Add effect to check if Clerk script is loaded
   useEffect(() => {
@@ -43,9 +44,6 @@ export function AuthProviders({ children }: ProvidersProps) {
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={clerkAppearance}
-      // Explicitly set sign-in and sign-up URLs
-      signInUrl="/auth/sign-in"
-      signUpUrl="/auth/sign-up"
     >
       {children}
       {/* <SessionExpiryAlert /> - Removed as Clerk handles session management */}
