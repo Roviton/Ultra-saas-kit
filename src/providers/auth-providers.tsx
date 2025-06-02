@@ -19,9 +19,11 @@ interface ProvidersProps {
 export function AuthProviders({ children }: ProvidersProps) {
   return (
     <ClerkProvider
-      // Explicitly set routing strategy to path-based
+      // Explicitly set routing strategy to path-based for production reliability
       routerPush={(to) => window.location.href = to}
       routerReplace={(to) => window.location.href = to}
+      // Use the environment variable for API version
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={{
         elements: {
           formButtonPrimary: 
