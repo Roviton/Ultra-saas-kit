@@ -1,4 +1,4 @@
-import { UserRole } from '@/lib/roles'
+import { UserRole } from '@/types/auth'
 
 export type Json =
   | string

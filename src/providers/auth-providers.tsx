@@ -1,13 +1,25 @@
 /**
- * This file is a placeholder for the upcoming Clerk authentication implementation.
- * All authentication-related code has been removed to prepare for a clean implementation.
- * 
- * This provider will be properly implemented when Clerk authentication is added.
+ * Clerk Authentication Provider
+ * This file implements Clerk authentication for the application
  */
 
 import React from 'react';
+import { ClerkProvider } from '@clerk/nextjs';
+import { dark } from '@clerk/themes';
 
 export const AuthProviders = ({ children }: { children: React.ReactNode }) => {
-  // This will be replaced with actual Clerk authentication providers
-  return <>{children}</>;
+  return (
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        elements: {
+          formButtonPrimary: 'bg-primary hover:bg-primary/90 text-white',
+          footerActionLink: 'text-primary hover:text-primary/90',
+          card: 'bg-background shadow-md',
+        },
+      }}
+    >
+      {children}
+    </ClerkProvider>
+  );
 };
