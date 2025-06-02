@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -148,12 +149,13 @@ export default function AdminDashboardPage() {
       </Card>
 
       <div className="mt-6 flex justify-end">
-        <Button 
-          onClick={() => router.push('/dashboard')}
-          variant="outline"
-        >
-          Back to Dashboard
-        </Button>
+        <Link href="/dashboard">
+          <Button 
+            variant="outline"
+          >
+            Back to Dashboard
+          </Button>
+        </Link>
       </div>
     </div>
   )
