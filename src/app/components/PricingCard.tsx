@@ -49,10 +49,9 @@ const PricingCard = ({
       // Check if user is authenticated - using mock for now
       // This will be replaced with actual Clerk authentication when implemented
       if (!mockUserAuthenticated) {
-        // If not authenticated, redirect to login with return URL
-        const returnUrl = '/dashboard/billing'
-        // Fix for Next.js 15 typed routes
-        router.push('/auth' + `?returnUrl=${encodeURIComponent(returnUrl)}`)
+        // If not authenticated, redirect to sign-in page
+        // Using simple string path for Next.js 15 compatibility
+        router.push('/auth/sign-in')
         return
       }
 
