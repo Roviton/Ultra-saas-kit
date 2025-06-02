@@ -5,15 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import AuthForm from './AuthForm'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useAuth } from '@/lib/supabase/auth-context'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useAuth } from '@/hooks/use-auth'
+import { useUser } from '@clerk/nextjs'
 
 function AuthContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [view, setView] = useState('sign-in')
   const [mounted, setMounted] = useState(false)
-  const { user } = useAuth()
+  const { user } = useUser()
 
   useEffect(() => {
     setMounted(true)

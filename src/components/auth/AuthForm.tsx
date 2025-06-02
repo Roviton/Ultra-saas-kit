@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/lib/supabase/auth-context'
 import { UserRole } from '@/lib/roles'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useSignIn, useSignUp } from '@clerk/nextjs'
 
 interface AuthFormProps {
   view?: string
@@ -27,7 +27,8 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnUrl = searchParams?.get('returnUrl') || '/'
-  const { signIn, signUp } = useAuth()
+  const { isLoaded: isSignInLoaded, signIn: clerkSignIn } = useSignIn()
+  const { isLoaded: isSignUpLoaded, signUp: clerkSignUp } = useSignUp()
 
   useEffect(() => {
     setIsSignUp(initialView === 'sign-up')
@@ -38,21 +39,27 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
     setIsLoading(true)
     setError(null)
 
+    if (!isSignInLoaded) {
+      setError('Authentication system is not ready yet. Please try again.')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const { error } = await signIn(email, password)
+      const result = await clerkSignIn.create({
+        identifier: email,
+        password,
+      })
 
-      if (error) {
-        if (error.message === 'Invalid login credentials') {
-          setError('Invalid email or password. Please try again.')
-        } else {
-          setError(error.message)
-        }
-        return
+      if (result.status === 'complete') {
+        // Redirect the user to the returnUrl or dashboard
+        router.push(returnUrl)
+      } else {
+        // This is a rare edge case
+        setError('Something went wrong during sign in. Please try again.')
       }
-
-      router.push(returnUrl)
-    } catch (error: any) {
-      setError(error.message)
+    } catch (err: any) {
+      setError(err.errors?.[0]?.message || 'An error occurred during sign in')
     } finally {
       setIsLoading(false)
     }
@@ -71,18 +78,33 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
       return
     }
 
+    if (!isSignUpLoaded) {
+      setError('Authentication system is not ready yet. Please try again.')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      // Use the auth context for signup with only required parameters
-      const { error } = await signUp(email, password, role)
+      const result = await clerkSignUp.create({
+        emailAddress: email,
+        password,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        unsafeMetadata: {
+          role: role,
+          organizationName: organizationName || undefined
+        }
+      })
 
-      if (error) {
-        setError(error.message)
-        return
+      if (result.status === 'complete') {
+        // If email verification is not required, redirect to dashboard
+        router.push('/dashboard')
+      } else {
+        // For all other statuses (needs_email_verification, etc.)
+        setSuccessMessage('Please check your email for the verification link and complete the signup process.')
       }
-
-      setSuccessMessage('Please check your email for the confirmation link.')
-    } catch (error: any) {
-      setError(error.message)
+    } catch (err: any) {
+      setError(err.errors?.[0]?.message || 'An error occurred during sign up')
     } finally {
       setIsLoading(false)
     }

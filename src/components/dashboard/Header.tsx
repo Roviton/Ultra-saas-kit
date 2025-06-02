@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { useAuth } from '@/hooks/use-auth'
 import { SignOutButton } from '@/components/auth/SignOutButton'
-import { Database } from '@/types/supabase'
+import { useUser } from '@clerk/nextjs'
 
 interface OrganizationInfo {
   id: string
@@ -13,14 +13,14 @@ interface OrganizationInfo {
 }
 
 export default function Header() {
-  const { user, profile, isLoading } = useAuth()
+  const { profile, isLoading } = useAuth()
+  const { user } = useUser()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [organizationInfo, setOrganizationInfo] = useState<OrganizationInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // The auth data is already being loaded by the AuthProvider in the auth-context
-
-  // SignOut functionality is now handled by the SignOutButton component
+  // Auth data is now loaded from Clerk via the useAuth hook
+  // SignOut functionality is handled by the SignOutButton component
 
   if (isLoading) {
     return (
@@ -63,7 +63,7 @@ export default function Header() {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center space-x-2 text-white hover:text-white/80"
                 >
-                  <span className="max-w-[150px] truncate">{user?.email}</span>
+                  <span className="max-w-[150px] truncate">{user?.primaryEmailAddress?.emailAddress}</span>
                   <svg
                     className={`w-5 h-5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
                     fill="none"

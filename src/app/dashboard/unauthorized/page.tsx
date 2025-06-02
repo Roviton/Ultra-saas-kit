@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, ShieldAlert, ArrowLeft, HomeIcon } from 'lucide-react'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { useAuth } from '@/hooks/use-auth'
 import Link from 'next/link'
 import Image from 'next/image'
 

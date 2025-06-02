@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { UserCircleIcon, ShieldCheckIcon, TruckIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { useAuth } from '@/hooks/use-auth'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { UserRole } from '@/lib/roles'
+import { useUser } from '@clerk/nextjs'
 
 interface Profile {
   id: string
@@ -22,7 +23,8 @@ interface Profile {
 }
 
 export default function ProfileSettings() {
-  const { user, profile: authProfile, isLoading: authLoading, isAdmin, refreshProfile } = useAuth()
+  const { profile: authProfile, isLoading: authLoading, isAdmin } = useAuth()
+  const { user } = useUser()
   const [profileData, setProfileData] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -100,7 +102,7 @@ export default function ProfileSettings() {
             full_name: '',
             avatar_url: null,
             website: '',
-            email: user.email || '',
+            email: user?.primaryEmailAddress?.emailAddress || '',
             first_name: authProfile?.firstName || '',
             last_name: authProfile?.lastName || '',
             role: authProfile?.role || 'dispatcher',
@@ -170,12 +172,12 @@ export default function ProfileSettings() {
       if (authProfile) {
         setProfileData({
           id: user.id,
-          email: user.email || '',
+          email: user.primaryEmailAddress?.emailAddress || '',
           username: '',
           full_name: `${authProfile.firstName || ''} ${authProfile.lastName || ''}`.trim(),
           first_name: authProfile.firstName || '',
           last_name: authProfile.lastName || '',
-          role: authProfile.role,
+          role: authProfile.role as UserRole, // Type assertion to fix type error
           organization_id: authProfile.organizationId,
           avatar_url: null,
           website: ''
@@ -221,9 +223,8 @@ export default function ProfileSettings() {
       }
 
       setSuccessMessage('Profile updated successfully')
-      // Refresh auth context profile data
-      await refreshProfile()
-      router.refresh() // Refresh the page to update any displayed profile data
+      // Refresh the page to update any displayed profile data
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile')
     } finally {
@@ -281,8 +282,6 @@ export default function ProfileSettings() {
       if (updateError) throw updateError
 
       setProfileData(profileData ? { ...profileData, avatar_url: publicUrl } : null)
-      // Refresh auth context
-      await refreshProfile()
       setSuccessMessage('Avatar updated successfully')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload avatar')
@@ -318,8 +317,6 @@ export default function ProfileSettings() {
       if (updateError) throw updateError
 
       setProfileData(profileData ? { ...profileData, avatar_url: null } : null)
-      // Refresh auth context
-      await refreshProfile()
       setSuccessMessage('Avatar removed successfully')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove avatar')

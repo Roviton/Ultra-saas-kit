@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { useAuth } from '@/hooks/use-auth'
+import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import {
   HomeIcon,
@@ -35,69 +35,24 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userRole, setUserRole] = useState<string | null>(null)
+  const { isLoading, isAuthenticated, userRole } = useAuth()
+  const { user } = useUser()
   const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClientComponentClient()
-
+  
+  // Redirect if not authenticated
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
-          router.replace('/auth')
-          return
-        }
-        
-        // Get user role from profiles table
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-        
-        if (profile) {
-          setUserRole(profile.role)
-        }
-        
-        setIsAuthenticated(true)
-      } catch (error) {
-        console.error('Error checking session:', error)
-        router.replace('/auth')
-      } finally {
-        setIsLoading(false)
-      }
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/auth/sign-in')
     }
+  }, [isLoading, isAuthenticated, router])
 
-    checkSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        router.replace('/auth')
-        setIsAuthenticated(false)
-      } else {
-        setIsAuthenticated(true)
-      }
-      setIsLoading(false)
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [router, supabase.auth])
-
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     )
-  }
-
-  if (!isAuthenticated) {
-    return null
   }
 
   return (

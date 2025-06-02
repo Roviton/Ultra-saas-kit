@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Chat from '@/components/dashboard/Chat'
 import DriverUpdates from '@/components/dashboard/DriverUpdates'
-import { useAuth } from '@/lib/supabase/auth-context'
+import { useAuth } from '@/hooks/use-auth'
 import { AdminOnly, DispatcherOnly, DriverOnly, CustomerOnly } from '@/components/auth/RoleProtection'
 import { useRoleProtection } from '@/hooks/use-role-protection'
 

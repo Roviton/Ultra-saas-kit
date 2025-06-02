@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth, useHasRole } from '@/lib/supabase/auth-context'
+import { useAuth } from '@/hooks/use-auth'
 import { UserRole } from '@/lib/roles'
 import { createSupabaseBrowserClient, UserProfile } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -11,8 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { AlertCircle, UserPlus, Building, Users } from 'lucide-react'
 
 export default function AdminDashboardPage() {
-  const { isAdmin, isLoading } = useAuth()
-  const hasAccess = useHasRole('admin')
+  const { user, profile, isLoading, isAdmin } = useAuth()
   const router = useRouter()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [organizations, setOrganizations] = useState<any[]>([])
@@ -20,45 +19,37 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     // Redirect non-admin users who somehow reached this page
-    if (!isLoading && !hasAccess) {
+    if (!isLoading && !isAdmin) {
       router.push('/dashboard/unauthorized')
     }
-  }, [isLoading, hasAccess, router])
+  }, [isLoading, isAdmin, router])
 
   useEffect(() => {
+    // Only run this effect if user is admin and not loading
+    if (isLoading || !isAdmin) return;
+    
     const fetchAdminData = async () => {
-      if (!hasAccess) return
-
       setIsLoadingData(true)
-      const supabase = createSupabaseBrowserClient()
-
       try {
-        // Fetch organization data
-        const { data: orgData, error: orgError } = await supabase
+        const supabase = createSupabaseBrowserClient()
+        
+        // Fetch all users
+        const { data: usersData, error: usersError } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false })
+        
+        if (usersError) throw usersError
+        setUsers(usersData || [])
+        
+        // Fetch all organizations
+        const { data: orgsData, error: orgsError } = await supabase
           .from('organizations')
           .select('*')
+          .order('created_at', { ascending: false })
         
-        if (orgError) throw orgError
-        setOrganizations(orgData || [])
-
-        // Fetch user profiles
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, email, role, organization_id, first_name, last_name')
-        
-        if (profilesError) throw profilesError
-        
-        // Convert to UserProfile format
-        const formattedProfiles: UserProfile[] = profilesData.map(profile => ({
-          id: profile.id,
-          email: profile.email || '',
-          role: profile.role as UserRole,
-          organizationId: profile.organization_id,
-          firstName: profile.first_name,
-          lastName: profile.last_name
-        }))
-        
-        setUsers(formattedProfiles)
+        if (orgsError) throw orgsError
+        setOrganizations(orgsData || [])
       } catch (error) {
         console.error('Error fetching admin data:', error)
       } finally {
@@ -66,10 +57,8 @@ export default function AdminDashboardPage() {
       }
     }
 
-    if (hasAccess) {
-      fetchAdminData()
-    }
-  }, [hasAccess])
+    fetchAdminData()
+  }, [isAdmin])
 
   if (isLoading) {
     return (
@@ -79,7 +68,7 @@ export default function AdminDashboardPage() {
     )
   }
 
-  if (!hasAccess) {
+  if (!isAdmin) {
     return null // We'll redirect in the useEffect
   }
 
