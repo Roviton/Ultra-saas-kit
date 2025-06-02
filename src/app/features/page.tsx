@@ -133,19 +133,20 @@ export default function FeaturesPage() {
                 <BookOpenIcon className="w-4 h-4" />
                 <span>Docs</span>
               </Link>
-              <Link href="/blog" className="text-sm text-white/70 hover:text-white">
+              {/* Blog link removed as the route doesn't exist in the app */}
+              {/* <Link href="/blog" className="text-sm text-white/70 hover:text-white">
                 Blog
-              </Link>
+              </Link> */}
             </div>
             <div className="flex items-center space-x-4">
               <Link 
-                href="/auth" 
+                href="/auth/sign-in" 
                 className="text-sm text-white/70 hover:text-white"
               >
                 Sign in
               </Link>
               <Link
-                href="/auth?view=sign-up"
+                href="/auth/sign-up"
                 className="bg-[#FFBE1A] text-black text-sm px-4 py-2 rounded-lg hover:bg-[#FFBE1A]/90"
               >
                 Get Started
@@ -171,7 +172,7 @@ export default function FeaturesPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/auth?view=sign-up"
+                href="/auth/sign-up"
                 className="inline-flex justify-center items-center px-6 py-3 rounded-lg bg-[#FFBE1A] text-black font-medium hover:bg-[#FFBE1A]/90 transition-colors"
               >
                 Get Started
