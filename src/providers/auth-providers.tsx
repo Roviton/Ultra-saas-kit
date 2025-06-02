@@ -23,6 +23,7 @@ export function AuthProviders({ children }: ProvidersProps) {
   console.log('Clerk JS enabled:', process.env.NEXT_PUBLIC_CLERK_JS_ENABLED);
   console.log('Clerk API version:', process.env.NEXT_PUBLIC_CLERK_API_VERSION);
   console.log('Clerk Frontend API:', process.env.NEXT_PUBLIC_CLERK_FRONTEND_API);
+  console.log('Clerk domain:', process.env.NEXT_PUBLIC_CLERK_DOMAIN);
   
   // Add effect to check if Clerk script is loaded
   useEffect(() => {
@@ -32,11 +33,28 @@ export function AuthProviders({ children }: ProvidersProps) {
       const checkClerkLoaded = () => {
         const isClerkLoaded = !!(window as any).__clerk_frontend_api;
         console.log('Clerk window object available:', isClerkLoaded);
+        
+        // If not loaded after 3 seconds, try to manually load the script
+        if (!isClerkLoaded && typeof document !== 'undefined') {
+          console.log('Attempting to manually load Clerk script...');
+          const script = document.createElement('script');
+          script.src = `https://${process.env.NEXT_PUBLIC_CLERK_FRONTEND_API}/npm/@clerk/clerk-js@latest/dist/clerk.browser.js`;
+          script.async = true;
+          script.crossOrigin = 'anonymous';
+          document.head.appendChild(script);
+        }
       };
       
-      // Check immediately and after a delay
+      // Check immediately and after delays
       checkClerkLoaded();
-      setTimeout(checkClerkLoaded, 2000);
+      setTimeout(() => {
+        console.log('Checking Clerk loaded state after 1s');
+        checkClerkLoaded();
+      }, 1000);
+      setTimeout(() => {
+        console.log('Checking Clerk loaded state after 3s');
+        checkClerkLoaded();
+      }, 3000);
     }
   }, []);
   
@@ -44,6 +62,10 @@ export function AuthProviders({ children }: ProvidersProps) {
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={clerkAppearance}
+      signInUrl="/auth/sign-in"
+      signUpUrl="/auth/sign-up"
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/dashboard"
     >
       {children}
       {/* <SessionExpiryAlert /> - Removed as Clerk handles session management */}
