@@ -103,7 +103,8 @@ export default function BillingPage() {
       const isAuthenticated = true
       
       if (!isAuthenticated) {
-        router.push('/auth')
+        // Using sign-in path for Next.js 15 compatibility
+        router.push('/auth/sign-in')
         return
       }
       
