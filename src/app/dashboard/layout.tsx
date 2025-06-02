@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   HomeIcon,
   ChartBarIcon,
@@ -13,19 +12,21 @@ import {
 } from '@heroicons/react/24/outline'
 import Header from '@/components/dashboard/Header'
 
+// Updated interface to use pathname literal types for Next.js 15 compatibility
 interface NavItem {
   name: string
   href: string
   icon: typeof HomeIcon
 }
 
+// Define navigation items with proper Next.js 15 route types
 const navigation: NavItem[] = [
-  { name: 'Overview', href: '/dashboard', icon: HomeIcon },
-  { name: 'Freight', href: '/dashboard/freight', icon: TruckIcon },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
-  { name: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-  { name: 'Documents', href: '/dashboard/documents', icon: DocumentTextIcon },
-  { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
+  { name: 'Overview', href: '/dashboard' as const, icon: HomeIcon },
+  { name: 'Freight', href: '/dashboard/freight' as const, icon: TruckIcon },
+  { name: 'Analytics', href: '/dashboard/analytics' as const, icon: ChartBarIcon },
+  { name: 'Profile', href: '/dashboard/profile' as const, icon: UserCircleIcon },
+  { name: 'Documents', href: '/dashboard/documents' as const, icon: DocumentTextIcon },
+  { name: 'Settings', href: '/dashboard/settings' as const, icon: Cog6ToothIcon },
 ]
 
 export default function DashboardLayout({
@@ -46,11 +47,11 @@ export default function DashboardLayout({
             {navigation.map((item) => {
               const isActive = pathname === item.href
               return (
-                <Link
+                <a
                   key={item.name}
                   href={item.href}
                   className={`
-                    flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                    w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
                     ${isActive 
                       ? 'bg-white/10 text-white' 
                       : 'text-white/60 hover:bg-white/5 hover:text-white'
@@ -59,7 +60,7 @@ export default function DashboardLayout({
                 >
                   <item.icon className="w-5 h-5 mr-3" />
                   {item.name}
-                </Link>
+                </a>
               )
             })}
             
