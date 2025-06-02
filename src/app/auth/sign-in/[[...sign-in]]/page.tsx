@@ -6,8 +6,8 @@ import { useEffect } from 'react'
 export default function SignInPage() {
   // Add debugging to help troubleshoot auth page issues
   useEffect(() => {
-    console.log('Sign-in page mounted')
+    console.log('Sign-in catch-all page mounted with hash routing')
   }, [])
 
-  return <AuthPage view="sign-in" />
+  return <AuthPage view="sign-in" routing="hash" />
 }

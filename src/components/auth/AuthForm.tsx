@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { UserRole } from '@/lib/roles'
+import { clerkAppearance } from '@/lib/clerk-appearance'
 
 interface AuthFormProps {
   view?: string
+  routing?: 'hash' | 'virtual'
 }
 
 /**
@@ -16,15 +18,37 @@ interface AuthFormProps {
  * This implementation properly handles CAPTCHA and other security features
  * required in production environments
  */
-export default function AuthForm({ view: initialView }: AuthFormProps) {
-  const [isSignUp, setIsSignUp] = useState(initialView === 'sign-up')
+export default function AuthForm({ view = 'sign-in', routing }: AuthFormProps) {
+  const [isSignUp, setIsSignUp] = useState(view === 'sign-up')
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [isClerkLoaded, setIsClerkLoaded] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    setIsSignUp(initialView === 'sign-up')
-  }, [initialView])
+    setIsSignUp(view === 'sign-up')
+  }, [view])
+  
+  // Check if Clerk is loaded
+  useEffect(() => {
+    // Check if Clerk components are available
+    if (typeof SignIn === 'function' && typeof SignUp === 'function') {
+      setIsClerkLoaded(true)
+    }
+    
+    // Also check if Clerk script is loaded in window
+    const checkClerkLoaded = () => {
+      if (typeof window !== 'undefined' && (window as any).__clerk_frontend_api) {
+        setIsClerkLoaded(true)
+      }
+    }
+    
+    // Check immediately and after a delay
+    checkClerkLoaded()
+    const timer = setTimeout(checkClerkLoaded, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [])
   
   // Handle errors at the component level
   useEffect(() => {
@@ -45,10 +69,42 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
   
   // Debug output to help troubleshoot rendering issues
   useEffect(() => {
-    console.log('AuthForm rendering with view:', initialView)
+    console.log('AuthForm rendering with view:', view)
     console.log('isSignUp:', isSignUp)
     console.log('Clerk publishable key:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
-  }, [initialView, isSignUp])
+    console.log('Clerk JS enabled:', process.env.NEXT_PUBLIC_CLERK_JS_ENABLED)
+    console.log('Clerk API version:', process.env.NEXT_PUBLIC_CLERK_API_VERSION)
+    console.log('Clerk sign-in URL:', process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL)
+    console.log('Clerk sign-up URL:', process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL)
+    console.log('Clerk routing:', routing)
+    
+    // Check if Clerk is loaded in window
+    if (typeof window !== 'undefined') {
+      console.log('Clerk window object available:', !!(window as any).__clerk_frontend_api)
+    }
+  }, [view, isSignUp, routing])
+
+  // Check if Clerk components are available
+  const ClerkComponentsAvailable = typeof SignIn === 'function' && typeof SignUp === 'function'
+  console.log('Clerk components available:', ClerkComponentsAvailable)
+
+  // Define appearance object once to avoid duplication
+  const clerkAppearance = {
+    elements: {
+      formButtonPrimary: 
+        "w-full py-2 px-4 bg-[#FFBE1A] text-black rounded-lg font-medium hover:bg-[#FFBE1A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFBE1A] disabled:opacity-50 transition-colors",
+      card: "bg-transparent shadow-none",
+      headerTitle: "hidden",
+      headerSubtitle: "hidden",
+      socialButtonsBlockButton: 
+        "bg-[#0A0A0A] border border-white/10 text-white hover:bg-[#1A1A1A]",
+      formFieldInput: 
+        "w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent",
+      formFieldLabel: "text-white",
+      footerActionText: "text-white",
+      footerActionLink: "text-[#FFBE1A] hover:text-[#FFBE1A]/80"
+    }
+  }
 
   return (
     <div className="flex flex-col items-center justify-center flex-1 w-full px-4">
@@ -73,50 +129,29 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
           </Alert>
         )}
 
-        {isSignUp ? (
+        {!isClerkLoaded && (
+          <div className="p-4 border border-yellow-500 bg-yellow-500/10 rounded-lg text-white">
+            <p className="font-medium">Authentication components are loading...</p>
+            <p className="text-sm mt-1">If this message persists, please check your Clerk configuration and browser console for errors.</p>
+          </div>
+        )}
+
+        {isClerkLoaded && isSignUp ? (
           <SignUp
-            signInUrl="/auth?view=sign-in"
+            signInUrl="/auth/sign-in"
             fallbackRedirectUrl="/dashboard"
             unsafeMetadata={{
               role: "dispatcher"
             }}
-            appearance={{
-              elements: {
-                formButtonPrimary: 
-                  "w-full py-2 px-4 bg-[#FFBE1A] text-black rounded-lg font-medium hover:bg-[#FFBE1A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFBE1A] disabled:opacity-50 transition-colors",
-                card: "bg-transparent shadow-none",
-                headerTitle: "hidden",
-                headerSubtitle: "hidden",
-                socialButtonsBlockButton: 
-                  "bg-[#0A0A0A] border border-white/10 text-white hover:bg-[#1A1A1A]",
-                formFieldInput: 
-                  "w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent",
-                formFieldLabel: "text-white",
-                footerActionText: "text-white",
-                footerActionLink: "text-[#FFBE1A] hover:text-[#FFBE1A]/80"
-              }
-            }}
+            appearance={clerkAppearance}
+            routing={routing}
           />
         ) : (
           <SignIn
-            signUpUrl="/auth?view=sign-up"
+            signUpUrl="/auth/sign-up"
             fallbackRedirectUrl="/dashboard"
-            appearance={{
-              elements: {
-                formButtonPrimary: 
-                  "w-full py-2 px-4 bg-[#FFBE1A] text-black rounded-lg font-medium hover:bg-[#FFBE1A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFBE1A] disabled:opacity-50 transition-colors",
-                card: "bg-transparent shadow-none",
-                headerTitle: "hidden",
-                headerSubtitle: "hidden",
-                socialButtonsBlockButton: 
-                  "bg-[#0A0A0A] border border-white/10 text-white hover:bg-[#1A1A1A]",
-                formFieldInput: 
-                  "w-full px-3 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FFBE1A] focus:border-transparent",
-                formFieldLabel: "text-white",
-                footerActionText: "text-white",
-                footerActionLink: "text-[#FFBE1A] hover:text-[#FFBE1A]/80"
-              }
-            }}
+            appearance={clerkAppearance}
+            routing={routing}
           />
         )}
       </div>

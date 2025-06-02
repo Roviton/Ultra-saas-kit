@@ -10,9 +10,10 @@ import { useUser } from '@clerk/nextjs'
 
 interface AuthContentProps {
   view?: 'sign-in' | 'sign-up'
+  routing?: 'hash' | 'virtual'
 }
 
-function AuthContent({ view: initialView = 'sign-in' }: AuthContentProps) {
+function AuthContent({ view: initialView = 'sign-in', routing }: AuthContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [view, setView] = useState(initialView)
@@ -74,7 +75,7 @@ function AuthContent({ view: initialView = 'sign-in' }: AuthContentProps) {
 
       {/* Main Content */}
       <div className="min-h-screen flex flex-col pt-20">
-        <AuthForm view={view} />
+        <AuthForm view={view} routing={routing} />
       </div>
     </div>
   )
@@ -82,13 +83,14 @@ function AuthContent({ view: initialView = 'sign-in' }: AuthContentProps) {
 
 interface AuthPageProps {
   view?: 'sign-in' | 'sign-up'
+  routing?: 'hash' | 'virtual'
 }
 
-export default function AuthPage({ view = 'sign-in' }: AuthPageProps) {
+export default function AuthPage({ view = 'sign-in', routing }: AuthPageProps) {
   // Add debugging to help troubleshoot auth page issues
   useEffect(() => {
-    console.log('AuthPage mounted with view:', view)
-  }, [view])
+    console.log('AuthPage mounted with view:', view, 'routing:', routing)
+  }, [view, routing])
 
   return (
     <Suspense fallback={
@@ -96,7 +98,7 @@ export default function AuthPage({ view = 'sign-in' }: AuthPageProps) {
         <div className="text-white">Loading...</div>
       </div>
     }>
-      <AuthContent view={view} />
+      <AuthContent view={view} routing={routing} />
     </Suspense>
   )
 } 

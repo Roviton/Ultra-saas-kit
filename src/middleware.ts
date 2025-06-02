@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server';
 import { canAccessRoute, getRedirectPath, UserRole } from '@/lib/roles';
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
+// Log middleware initialization to help with debugging
+console.log('Initializing Clerk middleware with API version:', process.env.CLERK_API_VERSION);
+
 // Define public routes that don't require authentication
 const publicRoutes = [
   '/',
   '/auth/sign-in',
   '/auth/sign-up',
+  '/auth/sign-in/(.*)',  // Catch-all route for sign-in
+  '/auth/sign-up/(.*)',  // Catch-all route for sign-up
   '/api/webhook/clerk',
   '/terms',
   '/privacy',
