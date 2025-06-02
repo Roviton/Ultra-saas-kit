@@ -76,7 +76,6 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
             unsafeMetadata={{
               role: "dispatcher"
             }}
-            afterSignUpUrl="/dashboard"
             appearance={{
               elements: {
                 formButtonPrimary: 
@@ -101,7 +100,6 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
             signUpUrl="/auth/sign-up"
             redirectUrl="/dashboard"
             forceRedirectUrl="/dashboard"
-            afterSignInUrl="/dashboard"
             appearance={{
               elements: {
                 formButtonPrimary: 
