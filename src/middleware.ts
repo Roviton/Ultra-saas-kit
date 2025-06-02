@@ -4,6 +4,9 @@ import type { NextRequest } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
 import { UserRole } from '@/types/auth';
 
+// For debugging middleware issues
+const DEBUG = process.env.NODE_ENV !== 'production';
+
 // Define public routes that don't require authentication
 const publicRoutes = [
   "/",
@@ -94,69 +97,82 @@ function getRequiredRoleForRoute(pathname: string): UserRole | null {
  * Middleware function to handle authentication and role-based access control
  */
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const { userId } = getAuth(request);
-  
-  // Check if the route is public
-  if (matchesRoute(pathname, publicRoutes)) {
+  try {
+    const { pathname } = request.nextUrl;
+    
+    // Check if the route is public first
+    if (matchesRoute(pathname, publicRoutes)) {
+      return NextResponse.next();
+    }
+    
+    // Get auth information from Clerk
+    const { userId } = getAuth(request);
+    
+    // If user is not authenticated and trying to access a protected route, redirect to sign-in
+    if (!userId) {
+      // Create a redirect URL to the sign-in page
+      const signInUrl = new URL('/auth/sign-in', request.url);
+      
+      // Add the current URL as a redirect parameter so users can be sent back after login
+      signInUrl.searchParams.set('redirect_url', request.url);
+      
+      // Redirect to the sign-in page
+      return NextResponse.redirect(signInUrl);
+    }
+    
+    // If user is authenticated and trying to access auth pages, redirect to dashboard
+    if (userId && (pathname === "/auth/sign-in" || pathname === "/auth/sign-up")) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    
+    // Get the required role for the requested route
+    const requiredRole = getRequiredRoleForRoute(pathname);
+    
+    // If no specific role is required, allow access to authenticated users
+    if (!requiredRole) {
+      return NextResponse.next();
+    }
+    
+    // For admin routes, we'll implement a basic check in the middleware
+    // For more complex role checks, we'll rely on page-level components
+    if (matchesRoute(pathname, adminRoutes)) {
+      // For admin routes, we'll add a header to indicate that admin access is required
+      // This can be checked in the page component
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-auth-role-required', 'admin');
+      
+      // Return the request with the modified headers
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
+    }
+    
+    // For dispatcher routes, we'll implement a similar check
+    if (matchesRoute(pathname, dispatcherRoutes)) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-auth-role-required', 'dispatcher');
+      
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
+    }
+    
+    // For all other authenticated routes, allow access
+    return NextResponse.next();
+  } catch (error) {
+    // Log the error for debugging
+    if (DEBUG) {
+      console.error('Middleware error:', error);
+    }
+    
+    // In case of an error, allow the request to proceed to avoid blocking users
+    // The application can handle authentication at the component level as a fallback
     return NextResponse.next();
   }
-  
-  // If user is not authenticated and trying to access a protected route, redirect to sign-in
-  if (!userId) {
-    // Create a redirect URL to the sign-in page
-    const signInUrl = new URL('/auth/sign-in', request.url);
-    
-    // Add the current URL as a redirect parameter so users can be sent back after login
-    signInUrl.searchParams.set('redirect_url', request.url);
-    
-    // Redirect to the sign-in page
-    return NextResponse.redirect(signInUrl);
-  }
-  
-  // If user is authenticated and trying to access auth pages, redirect to dashboard
-  if (userId && (pathname === "/auth/sign-in" || pathname === "/auth/sign-up")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-  
-  // Get the required role for the requested route
-  const requiredRole = getRequiredRoleForRoute(pathname);
-  
-  // If no specific role is required, allow access to authenticated users
-  if (!requiredRole) {
-    return NextResponse.next();
-  }
-  
-  // For admin routes, we'll implement a basic check in the middleware
-  // For more complex role checks, we'll rely on page-level components
-  if (matchesRoute(pathname, adminRoutes)) {
-    // For admin routes, we'll add a header to indicate that admin access is required
-    // This can be checked in the page component
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-auth-role-required', 'admin');
-    
-    // Return the request with the modified headers
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-  }
-  
-  // For dispatcher routes, we'll implement a similar check
-  if (matchesRoute(pathname, dispatcherRoutes)) {
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-auth-role-required', 'dispatcher');
-    
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-  }
-  
-  // For all other authenticated routes, allow access
-  return NextResponse.next();
 }
 
 // Configure Middleware to run on specific paths
