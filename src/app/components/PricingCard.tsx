@@ -51,7 +51,8 @@ const PricingCard = ({
       if (!mockUserAuthenticated) {
         // If not authenticated, redirect to login with return URL
         const returnUrl = '/dashboard/billing'
-        router.push(`/auth?returnUrl=${encodeURIComponent(returnUrl)}`)
+        // Fix for Next.js 15 typed routes
+        router.push('/auth' + `?returnUrl=${encodeURIComponent(returnUrl)}`)
         return
       }
 
