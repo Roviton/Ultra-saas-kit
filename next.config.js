@@ -1,4 +1,11 @@
 /** @type {import('next').NextConfig} */
+
+// Validate critical environment variables
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+if (!clerkPublishableKey) {
+  console.warn('Warning: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing');
+}
+
 const nextConfig = {
   reactStrictMode: true,
   env: {
@@ -32,12 +39,19 @@ const nextConfig = {
     domains: [],
   },
   
-  // Disable static generation for pages that use Clerk authentication
-  // This prevents prerendering errors with Clerk
+  // Configuration for handling Clerk authentication properly
   experimental: {
-    // Disable static generation for pages that use authentication
+    // Disable suspense bailout to prevent hydration issues
     missingSuspenseWithCSRBailout: false
-  }
+  },
+  
+  // Explicitly define which pages should not be statically generated
+  // This prevents prerendering errors with Clerk authentication
+  unstable_excludeFiles: [
+    '**/_not-found.js',  // Exclude the not-found page from static generation
+    '**/auth/**/*.js',   // Exclude auth pages from static generation
+    '**/dashboard/**/*.js' // Exclude dashboard pages from static generation
+  ]
 }
 
 module.exports = nextConfig
