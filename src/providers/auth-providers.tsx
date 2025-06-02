@@ -18,7 +18,24 @@ interface ProvidersProps {
  */
 export function AuthProviders({ children }: ProvidersProps) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        elements: {
+          formButtonPrimary: 
+            "bg-[#FFBE1A] hover:bg-[#FFBE1A]/90 text-black",
+          card: "bg-[#0A0A0A] border border-white/10",
+          headerTitle: "text-white",
+          headerSubtitle: "text-white/60",
+          socialButtonsBlockButton: 
+            "bg-[#1A1A1A] border border-white/10 text-white hover:bg-[#2A2A2A]",
+          formFieldInput: 
+            "bg-[#0A0A0A] border border-white/10 text-white",
+          formFieldLabel: "text-white",
+          footerActionText: "text-white",
+          footerActionLink: "text-[#FFBE1A] hover:text-[#FFBE1A]/80"
+        }
+      }}
+    >
       {children}
       {/* <SessionExpiryAlert /> - Removed as Clerk handles session management */}
       <Toaster position="top-right" />
