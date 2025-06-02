@@ -159,9 +159,22 @@ export default function Home() {
               >
                 Community
               </Link>
-              <Link href="/blog" className="text-sm text-white/70 hover:text-white">
+              {/* Blog link removed as the route doesn't exist */}
+              {/* <Link href="/blog" className="text-sm text-white/70 hover:text-white">
                 Blog
+              </Link> */}
+              {/* <Link href="/about" className="text-white/60 hover:text-white">
+                About
               </Link>
+              <Link href="/careers" className="text-white/60 hover:text-white">
+                Careers
+              </Link>
+              <Link href="/contact" className="text-white/60 hover:text-white">
+                Contact
+              </Link>
+              <Link href="/changelog" className="text-white/60 hover:text-white">
+                Changelog
+              </Link> */}
             </div>
             <div className="flex items-center space-x-4">
               <Link 
@@ -175,13 +188,13 @@ export default function Home() {
                 </svg>
               </Link>
               <Link 
-                href="/auth" 
+                href="/auth/sign-in" 
                 className="text-sm text-white/70 hover:text-white"
               >
                 Sign in
               </Link>
               <Link
-                href="/auth?view=sign-up"
+                href="/auth/sign-up"
                 className="bg-[#FFBE1A] text-black text-sm px-4 py-2 rounded-lg hover:bg-[#FFBE1A]/90"
               >
                 Get Started
@@ -737,16 +750,16 @@ export default function Home() {
                 <li><Link href="/features" className="text-white/70 hover:text-white">Features</Link></li>
                 <li><Link href="/pricing" className="text-white/70 hover:text-white">Pricing</Link></li>
                 <li><Link href="/docs" className="text-white/70 hover:text-white">Documentation</Link></li>
-                <li><Link href="/changelog" className="text-white/70 hover:text-white">Changelog</Link></li>
+                <li>{/* <Link href="/changelog" className="text-white/70 hover:text-white">Changelog</Link> */}</li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-white mb-4">Company</h3>
               <ul className="space-y-2">
-                <li><Link href="/about" className="text-white/70 hover:text-white">About</Link></li>
-                <li><Link href="/blog" className="text-white/70 hover:text-white">Blog</Link></li>
-                <li><Link href="/careers" className="text-white/70 hover:text-white">Careers</Link></li>
-                <li><Link href="/contact" className="text-white/70 hover:text-white">Contact</Link></li>
+                <li>{/* <Link href="/about" className="text-white/70 hover:text-white">About</Link> */}</li>
+                <li>{/* <Link href="/blog" className="text-white/70 hover:text-white">Blog</Link> */}</li>
+                <li>{/* <Link href="/careers" className="text-white/70 hover:text-white">Careers</Link> */}</li>
+                <li>{/* <Link href="/contact" className="text-white/70 hover:text-white">Contact</Link> */}</li>
               </ul>
             </div>
             <div>
@@ -760,9 +773,9 @@ export default function Home() {
                 >
                   Community
                 </Link></li>
-                <li><Link href="/help" className="text-white/70 hover:text-white">Help Center</Link></li>
-                <li><Link href="/status" className="text-white/70 hover:text-white">Status</Link></li>
-                <li><Link href="/terms" className="text-white/70 hover:text-white">Terms of Service</Link></li>
+                <li>{/* <Link href="/help" className="text-white/70 hover:text-white">Help Center</Link> */}</li>
+                <li>{/* <Link href="/status" className="text-white/70 hover:text-white">Status</Link> */}</li>
+                <li>{/* <Link href="/terms" className="text-white/70 hover:text-white">Terms of Service</Link> */}</li>
               </ul>
             </div>
             <div>
@@ -771,7 +784,7 @@ export default function Home() {
                 <li><Link href="https://twitter.com" className="text-white/70 hover:text-white">Twitter</Link></li>
                 <li><Link href="https://github.com/zainulabedeen123/best-saas-kit" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white">GitHub</Link></li>
                 <li><Link href="https://discord.com" className="text-white/70 hover:text-white">Discord</Link></li>
-                <li><Link href="/newsletter" className="text-white/70 hover:text-white">Newsletter</Link></li>
+                <li>{/* <Link href="/newsletter" className="text-white/70 hover:text-white">Newsletter</Link> */}</li>
               </ul>
             </div>
           </div>

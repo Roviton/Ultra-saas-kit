@@ -80,7 +80,7 @@ export default function PricingPage() {
               <Link href="/docs" className="text-white/80 hover:text-white transition-colors">
                 Documentation
               </Link>
-              <Link href="/auth" className="text-[#FFBE1A] hover:text-[#FFBE1A]/80 transition-colors">
+              <Link href="/auth/sign-in" className="text-[#FFBE1A] hover:text-[#FFBE1A]/80 transition-colors">
                 Sign In
               </Link>
             </nav>
