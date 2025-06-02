@@ -76,7 +76,7 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
         {isSignUp ? (
           <SignUp
             signInUrl="/auth?view=sign-in"
-            redirectUrl="/dashboard"
+            fallbackRedirectUrl="/dashboard"
             unsafeMetadata={{
               role: "dispatcher"
             }}
@@ -100,7 +100,7 @@ export default function AuthForm({ view: initialView }: AuthFormProps) {
         ) : (
           <SignIn
             signUpUrl="/auth?view=sign-up"
-            redirectUrl="/dashboard"
+            fallbackRedirectUrl="/dashboard"
             appearance={{
               elements: {
                 formButtonPrimary: 
