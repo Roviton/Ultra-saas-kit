@@ -8,25 +8,29 @@ import Image from 'next/image'
 import { useAuth } from '@/hooks/use-auth'
 import { useUser } from '@clerk/nextjs'
 
-function AuthContent() {
+interface AuthContentProps {
+  view?: 'sign-in' | 'sign-up'
+}
+
+function AuthContent({ view: initialView = 'sign-in' }: AuthContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [view, setView] = useState('sign-in')
+  const [view, setView] = useState(initialView)
   const [mounted, setMounted] = useState(false)
   const { user } = useUser()
 
   useEffect(() => {
     setMounted(true)
     const viewParam = searchParams.get('view')
-    if (viewParam) {
-      setView(viewParam)
+    if (viewParam && (viewParam === 'sign-in' || viewParam === 'sign-up')) {
+      setView(viewParam as 'sign-in' | 'sign-up')
     }
 
     // If user is already authenticated, redirect to dashboard
     if (user) {
       router.push('/dashboard')
     }
-  }, [router, searchParams, user])
+  }, [router, searchParams, user, initialView])
 
   if (!mounted) {
     return (
@@ -58,7 +62,7 @@ function AuthContent() {
                 Documentation
               </Link>
               <Link 
-                href={view === 'sign-in' ? '/auth?view=sign-up' : '/auth?view=sign-in'} 
+                href={view === 'sign-in' ? '/auth/sign-up' : '/auth/sign-in'} 
                 className="text-[#FFBE1A] hover:text-[#FFBE1A]/80 transition-colors"
               >
                 {view === 'sign-in' ? 'Sign up' : 'Sign in'}
@@ -76,14 +80,23 @@ function AuthContent() {
   )
 }
 
-export default function AuthPage() {
+interface AuthPageProps {
+  view?: 'sign-in' | 'sign-up'
+}
+
+export default function AuthPage({ view = 'sign-in' }: AuthPageProps) {
+  // Add debugging to help troubleshoot auth page issues
+  useEffect(() => {
+    console.log('AuthPage mounted with view:', view)
+  }, [view])
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     }>
-      <AuthContent />
+      <AuthContent view={view} />
     </Suspense>
   )
 } 
