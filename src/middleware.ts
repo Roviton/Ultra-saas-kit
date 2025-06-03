@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
- 
+import { getAuth } from "@clerk/nextjs/server";
+
 // Define public routes that don't require authentication
 const publicRoutes = [
   "/",
@@ -15,7 +16,6 @@ const publicRoutes = [
   "/about",
   "/blog",
   "/faq",
-  "/_next",
   "/favicon.ico",
   "/robots.txt",
   "/sitemap.xml",
@@ -28,49 +28,42 @@ const webhookRoutes = [
 ];
 
 /**
- * Check if a pathname matches any of the routes in the list
- */
-function matchesRoute(pathname: string, routes: string[]): boolean {
-  return routes.some(route => 
-    pathname === route || 
-    pathname.startsWith(`${route}/`)
-  );
-}
-
-/**
- * Simple middleware function for MVP
- * This handles basic routing without relying on Clerk's middleware wrapper
+ * Middleware function for handling authentication with Clerk
+ * This uses the correct patterns for Clerk v6.20.2 with Next.js 15
  * 
- * This simplified approach ensures the application works reliably while
- * we continue to develop the full authentication system
+ * By default, all routes require authentication unless specified in publicRoutes
+ * Webhook routes are also added to publicRoutes to bypass authentication
  */
-export default function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+
+export async function middleware(req: NextRequest) {
+  // Check if the request URL is in the public routes
+  const url = req.nextUrl.clone();
+  const isPublicRoute = [...publicRoutes, ...webhookRoutes].some(path => 
+    url.pathname === path || url.pathname.startsWith(path + '/')
+  );
   
-  // Always allow webhook routes
-  if (matchesRoute(pathname, webhookRoutes)) {
-    return NextResponse.next();
-  }
+  // Get the Clerk auth state using the getAuth helper
+  const { userId } = getAuth(req);
   
-  // Allow public routes without authentication
-  if (matchesRoute(pathname, publicRoutes)) {
-    return NextResponse.next();
-  }
-  
-  // For protected routes (dashboard, etc.), redirect to sign-in
-  if (pathname.startsWith('/dashboard')) {
-    const signInUrl = new URL('/auth/sign-in', request.url);
-    signInUrl.searchParams.set('redirect_url', request.url);
+  // If the user is not signed in and the route is not public, redirect to sign-in
+  if (!userId && !isPublicRoute) {
+    const signInUrl = new URL('/auth/sign-in', req.url);
+    signInUrl.searchParams.set('redirect_url', req.url);
     return NextResponse.redirect(signInUrl);
   }
   
-  // Allow all other routes for now
+  // Allow the request to continue
   return NextResponse.next();
 }
  
+// Configure the middleware matcher to include only specific routes that need auth
+// This avoids using negative lookaheads which cause issues in Next.js 15
 export const config = {
   matcher: [
-    // Match all routes except static files and API routes that don't need auth
-    "/((?!_next/static|_next/image|favicon.ico|.*svg).*)",
+    // Include routes that need authentication
+    '/dashboard/:path*',
+    '/account/:path*',
+    '/api/:path*',
+    // Exclude specific API routes in the middleware logic instead of the matcher
   ],
 };
